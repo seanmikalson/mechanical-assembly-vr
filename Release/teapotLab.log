@@ -1,0 +1,24 @@
+﻿Build started 5/30/2014 3:20:48 PM.
+     1>Project "C:\ENSF545-LabCode\Downloads\HapticTeapotTest\teapotLab.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\OpenHaptics\Academic\3.2\include /IC:\OpenHaptics\Academic\3.2\utilities\include /Zi /nologo /W3 /WX- /O2 /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp Timer.cxx
+         main.cpp
+         Timer.cxx
+       Link:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\HapticTeapotTest.exe" /NOLOGO /LIBPATH:C:\OpenHaptics\Academic\3.2\lib\Win32\ReleaseAcademicEdition /LIBPATH:C:\OpenHaptics\Academic\3.2\utilities\lib\Win32\ReleaseAcademicEdition GlU32.Lib OpenGL32.Lib glut32.lib hl.lib hlu.lib hd.lib hdu.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\HapticTeapotTest.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\HapticTeapotTest.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE:NO /IMPLIB:"C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\HapticTeapotTest.lib" /MACHINE:X86 Release\main.obj
+         Release\Timer.obj
+         Generating code
+         Finished generating code
+     1>hlu.lib(hlu.obj) : warning LNK4204: 'C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>hdu.lib(hduError.obj) : warning LNK4204: 'C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>hdu.lib(hduDecompose.obj) : warning LNK4204: 'C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>hdu.lib(hduMatrix.obj) : warning LNK4204: 'C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>hdu.lib(hduQuaternion.obj) : warning LNK4204: 'C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\vc100.pdb' is missing debugging information for referencing module; linking object as if no debug info
+         teapotLab.vcxproj -> C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\HapticTeapotTest.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\ENSF545-LabCode\Downloads\HapticTeapotTest\Release\HapticTeapotTest.exe;#1" /manifest Release\HapticTeapotTest.exe.intermediate.manifest
+     1>Done Building Project "C:\ENSF545-LabCode\Downloads\HapticTeapotTest\teapotLab.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.62
