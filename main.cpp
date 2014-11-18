@@ -157,16 +157,42 @@ float farP=40;
 
 int colorIndex=3; // 3 colors - red, green, blue
 bool touched; // haptic code
+bool grabbed;
 int stereo=1; // if stereo=0 rendering mono view 
 
 // haptic callback
 #ifdef HAPTIC
+
+HLdouble proxyPos[3];
+HLdouble placedPos[3];
+
 void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
 	touched=!touched;
-	color();
 }
+
+void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread, 
+                                   HLcache *cache, void *userdata)
+{
+	if(touched)
+	{
+		grabbed = true;
+	}
+}
+
+void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread, 
+                                   HLcache *cache, void *userdata)
+{
+	if(grabbed)
+	{
+		placedPos[0] = proxyPos[0];
+		placedPos[1] = proxyPos[1];
+		placedPos[2] = proxyPos[2];
+	}
+	grabbed = false;
+}
+
 #endif
 
 void color(){
@@ -445,8 +471,14 @@ void showInfo()
     ss.str("");
 
 	#ifdef HAPTIC
-	HLdouble proxyPos[3];
+	HLdouble proxyRot[4];
 	hlGetDoublev(HL_PROXY_POSITION, proxyPos);
+	hlGetDoublev(HL_PROXY_ROTATION, proxyRot);
+
+	ss << "Proxy rotation: " << proxyRot[0] << " " << proxyRot[1] << " " << proxyRot[2] << " " << proxyRot[3] << ends;
+    drawString(ss.str().c_str(), 1, 200, color, font);
+    ss.str("");
+
 
 	ss << "haptic: " << proxyPos[0] << ", " << proxyPos[1] << ", " <<proxyPos[2] << ends;
     drawString(ss.str().c_str(), 1, 258, color, font);
@@ -554,6 +586,15 @@ void drawObject(){
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
 		// tramsform camera
+		if(grabbed)
+		{
+			glTranslated(proxyPos[0], proxyPos[1], proxyPos[2]);
+		}
+		else
+		{
+			glTranslated(placedPos[0], placedPos[1], placedPos[2]);
+		}
+
 		glTranslatef(0, 0, cameraDistance); //press down right button of the mouse
 		glRotatef(cameraAngleX, 1, 0, 0);   // pitch - press down left button of the mouse
 		glRotatef(cameraAngleY, 0, 1, 0);   // heading - press down left button of the mouse
@@ -740,6 +781,8 @@ void initHL()
     hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
                        &touchShapeCallback, NULL);
 
+	hlAddEventCallback(HL_EVENT_1BUTTONDOWN, HL_OBJECT_ANY, HL_CLIENT_THREAD, &button1DownCallback, NULL);
+	hlAddEventCallback(HL_EVENT_1BUTTONUP, HL_OBJECT_ANY, HL_CLIENT_THREAD, &button1UpCallback, NULL);
 
     hlTouchableFace(HL_FRONT); // define force feedback from front faces of teapot
 }
@@ -822,6 +865,15 @@ void drawSceneHaptics()
        glPushMatrix();
 
     // tramsform camera
+	if(grabbed)
+	{
+		glTranslated(proxyPos[0], proxyPos[1], proxyPos[2]);
+	}
+	else
+	{
+		glTranslated(placedPos[0], placedPos[1], placedPos[2]);
+	}
+
     glTranslatef(0, 0, cameraDistance);
     glRotatef(cameraAngleX, 1, 0, 0);   // pitch
     glRotatef(cameraAngleY, 0, 1, 0);   // heading
