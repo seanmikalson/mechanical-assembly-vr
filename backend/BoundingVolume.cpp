@@ -16,16 +16,16 @@ BoundingVolume::BoundingVolume()
     Material* Green = new  Material(grnamb,grndiff,nothing,30.0f);
     Material* Purple = new Material(diffPurp,diffPurp,specular,30.0f);
     Material* Tan = new Material(tanamb,tanamb,nothing,0.0f);
-    Material* Grey = new Material(greyamb,greyamb,greyamb,130.0f);
+    Material* Grey = new Material(greyamb,greyamb,nothing,0.0f);
 	Material* floor = new Material(greyamb,greyamb,greyamb,10.0f);
 	Material* Red = new Material(redamb,redamb,nothing,0.0f);
-	Material* Blue = new Material(blueamb,blueamb,specular,130.0f);
+	Material* Blue = new Material(blueamb,blueamb,nothing,0.0f);
 	Material* roof = new Material(ambwht,ambwht,nothing,0.0f);
 
 	
 	//setup engine
-	gameObjects.addItem(EngineBlock(8.0f,0.0f,-10.0f,-100.0f,Blue));
-	gameObjects.addItem(EngineHead(16.0f,13.0f,-17.0f,-100.0f,Red));
+	gameObjects.addItem(EngineBlock(2.0f,0.0f,0.0f,-100.0f,Grey));
+	gameObjects.addItem(EngineHead(4.0f,13.0f,0.0f,-100.0f,Red));
 	gameObjects[1].rotateZ(-45.0f * DEGREES_TO_RAD);
 
 	Vertex movement = ((*(*gameObjects[0].getVisualData(0)).getVertex(0)) + gameObjects[0].getPosition() + (*gameObjects[0].getVisualData(0)).getPosition()) - 
@@ -34,11 +34,11 @@ BoundingVolume::BoundingVolume()
 	gameObjects[1].adjustPosition(1.0f * movement.getX(),1.0f *movement.getY(),0.0f);
 
 	//setup room
-	//List<Material> temp = List<Material>();
-	//temp.addItem(*floor);
-	//temp.addItem(*roof);
-	//temp.addItem(*Tan);
-	//gameObjects.addItem(WorkShop(30.0f,0.0f,30.0f,-100.0f,temp));
+	List<Material> temp = List<Material>();
+	temp.addItem(*floor);
+	temp.addItem(*roof);
+	temp.addItem(*Tan);
+	gameObjects.addItem(WorkShop(30.0f,0.0f,0.0f,-100.0f,temp));
 
 	//setup table
 	//Vertex cubeScale = Vertex(20.0f,4.0f,20.0f);

@@ -30,10 +30,10 @@ GraphicsTriangle::GraphicsTriangle(Vertex* inOne,Vertex* inTwo, Vertex* inThree,
 }
 void GraphicsTriangle::drawVertex(Vertex* normal, Material* mat, Vertex* position, GLfloat dispx, GLfloat dispy, GLfloat dispz)
 {
-	glMaterialfv(GL_FRONT, GL_AMBIENT, (*mat).getAmbient());
-	glMaterialfv(GL_FRONT, GL_DIFFUSE,(*mat).getDiffuse());
-	glMaterialfv(GL_FRONT, GL_SHININESS,(*mat).getShinniness());
-	glMaterialfv(GL_FRONT, GL_SPECULAR,(*mat).getSpecular());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, (*mat).getAmbient());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,(*mat).getDiffuse());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS,(*mat).getShinniness());
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,(*mat).getSpecular());
 
 	glNormal3f(NOR_X, NOR_Y, NOR_Z);
     glVertex3f(POS_PLUS_DISP_X, POS_PLUS_DISP_Y, POS_PLUS_DISP_Z);
