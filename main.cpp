@@ -143,7 +143,7 @@ float foview=60.;
 
 // one camera - 2 frustums --> stereoscopy with each eye equal to one frustrum
 float nNear=1.;
-float nFar=15.;
+float nFar=80.;
 float frustumTop = nNear*tan(foview*3.14159/360); 
 float frustumRight = frustumTop*ratio; //top 
 
@@ -153,7 +153,7 @@ float right;
 float top;
 float bottom;
 float nearP=1;
-float farP=40;
+float farP=80;
 
 int colorIndex=3; // 3 colors - red, green, blue
 bool touched; // haptic code
@@ -289,17 +289,17 @@ void initGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 
      // track material ambient and diffuse from surface color, call it before glEnable(GL_COLOR_MATERIAL)
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
+   // glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+   // glEnable(GL_COLOR_MATERIAL);
 
     //glClearColor(0, 0, 0, 0);                   // background color black
 
     glClearColor(0, 0, 0.3, 0);                   // background color blue
     glClearStencil(0);                          // clear stencil buffer
-    glClearDepth(1.0f);                         // 0 is near, 1 is far
+    glClearDepth(100.0f);                         // 0 is near, 1 is far
     glDepthFunc(GL_LEQUAL);
 
     initLights();
@@ -831,7 +831,10 @@ void drawSceneHaptics()
     //if(dlUsed)
     //    glCallList(listId);     // render with display list
     //else
-        drawTeapot();           // render with vertex array, glDrawElements()
+        //drawTeapot();// render with vertex array, glDrawElements()
+	glBegin(GL_TRIANGLES);
+	boundingVolume.draw();
+	glEnd();
     glPopMatrix();
 
 
