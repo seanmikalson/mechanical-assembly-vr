@@ -44,6 +44,9 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>H:\Documents\ENSF545\mechanical-assembly-vr\GLTools;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -84,10 +87,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="backend\BoundingVolume.cpp" />
+    <ClCompile Include="backend\GameObject.cpp" />
+    <ClCompile Include="backend\GraphicsTriangle.cpp" />
+    <ClCompile Include="backend\Material.cpp" />
+    <ClCompile Include="backend\MechanicalObject.cpp" />
+    <ClCompile Include="backend\PhysicsData.cpp" />
+    <ClCompile Include="backend\PhysicsHull.cpp" />
+    <ClCompile Include="backend\Primitives.cpp" />
+    <ClCompile Include="backend\Triangle.cpp" />
+    <ClCompile Include="backend\TriangleMeshHull.cpp" />
+    <ClCompile Include="backend\Vertex.cpp" />
+    <ClCompile Include="backend\VisualData.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Timer.cxx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="backend\BoundingVolume.h" />
+    <ClInclude Include="backend\ColoredTriangle.h" />
+    <ClInclude Include="backend\GameObject.h" />
+    <ClInclude Include="backend\GraphicsTriangle.h" />
+    <ClInclude Include="backend\List.h" />
+    <ClInclude Include="backend\Material.h" />
+    <ClInclude Include="backend\MechanicalObject.h" />
+    <ClInclude Include="backend\PhysicsData.h" />
+    <ClInclude Include="backend\PhysicsHull.h" />
+    <ClInclude Include="backend\Primitives.h" />
+    <ClInclude Include="backend\Triangle.h" />
+    <ClInclude Include="backend\TriangleMeshHull.h" />
+    <ClInclude Include="backend\Vertex.h" />
+    <ClInclude Include="backend\VisualData.h" />
     <ClInclude Include="teapot.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
