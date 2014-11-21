@@ -612,6 +612,61 @@ void drawObject(){
     timer.stop();   //=====================================
 }
 
+/*******************************************************************************
+ The main routine for rendering scene haptics.
+*******************************************************************************/
+void drawSceneHaptics()
+{    
+    // Start haptic frame.  (Must do this before rendering any haptic shapes.)
+    hlBeginFrame();
+
+    // Set material properties for the shapes to be drawn.
+    hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
+    hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
+    hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
+    hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
+
+    // Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
+    // geometry for haptic rendering.
+    hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, gTeapotShapeId);
+
+    // Use OpenGL commands to create geometry.
+       glPushMatrix();
+
+    // tramsform camera
+	if(grabbed)
+	{
+		glTranslated(proxyPos[0], proxyPos[1], proxyPos[2]);
+	}
+	else
+	{
+		glTranslated(placedPos[0], placedPos[1], placedPos[2]);
+	}
+
+    glTranslatef(0, 0, cameraDistance);
+    glRotatef(cameraAngleX, 1, 0, 0);   // pitch
+    glRotatef(cameraAngleY, 0, 1, 0);   // heading
+
+    //if(dlUsed)
+    //    glCallList(listId);     // render with display list
+    //else
+        drawTeapot();           // render with vertex array, glDrawElements()
+
+    glPopMatrix();
+
+
+    // End the shape.
+    hlEndShape();
+
+    // End the haptic frame.
+    hlEndFrame();
+
+	// Call any event callbacks that have been triggered.
+    hlCheckEvents();
+
+
+}
+
 void reshapeCB(int w, int h)
 {
     // set viewport to be the entire window
