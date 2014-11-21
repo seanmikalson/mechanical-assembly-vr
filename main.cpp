@@ -16,7 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-
+#include "backend/BoundingVolume.h"
 #include "Timer.h"
 #include <GL/glut.h>
 #include "teapot.h"
@@ -36,7 +36,7 @@ typedef struct {
 } CAMERA;
 
 CAMERA camera;
-
+BoundingVolume boundingVolume;
 #define PI 3.141592653589793238462643
 #define DTOR            0.0174532925   // DEGREE TO RADIAN
 #define RTOD            57.2957795     // RADIAN TO DEGREE
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 {
     // initialize global variables
     initSharedMem();
-
+	boundingVolume = BoundingVolume();
 	// set initial color of teapot
 	for (int i=0; i<colorIndex; i++){
 		diffuseColor[i]=diffuseColorRed[i];
@@ -559,8 +559,10 @@ void drawObject(){
 		glRotatef(cameraAngleY, 0, 1, 0);   // heading - press down left button of the mouse
 
 		timer.start();  //=====================================
-
-		drawTeapot();           // render with vertex array, glDrawElements()
+		//drawTeapot();
+		glBegin(GL_TRIANGLES);
+		boundingVolume.draw();   
+		glEnd();// render with vertex array, glDrawElements()
 	glPopMatrix();
     timer.stop();   //=====================================
 }
@@ -830,7 +832,6 @@ void drawSceneHaptics()
     //    glCallList(listId);     // render with display list
     //else
         drawTeapot();           // render with vertex array, glDrawElements()
-
     glPopMatrix();
 
 
