@@ -98,8 +98,9 @@ void showInfo();
 void showFPS();
 void drawScene();
 void drawMono();
+void drawCylinder();
 
-
+float* getMatrixFromQuaternion(float i, float j, float k, float l);
 
 void drawObject();
 void drawEye(int eye);
@@ -108,6 +109,41 @@ void drawEyeLookAt();
 void normalise(XYZ *p);
 XYZ crossProduct(XYZ p1, XYZ p2);
 void color();
+
+
+HLdouble* differenceInMatrix(HLdouble* a, HLdouble* b)
+{
+	HLdouble result[16];
+	for(int i = 0; i < 16; i++)
+	{
+		result[i] = a[i] - b[i];
+	}
+	return result;
+}
+
+HLfloat* getMatrixFromQuaternion(float w, float x, float y, float z)
+{
+	HLfloat* matrix = new HLfloat[16];
+	
+	matrix[0] = 1.0f - 2.0f*y*y - 2.0*z*z;
+	matrix[1] = 2.0f*x*y + 2.0f*z*w;
+	matrix[2] = 2.0f*x*z - 2.0f*y*w;
+	matrix[3] = 0.0f;
+	matrix[4] = 2.0f*x*y-2.0f*z*w;
+	matrix[5] = 1.0f-2.0f*x*x-2.0f*z*z;
+	matrix[6] = 2.0f*y*z+2.0f*x*w;
+	matrix[7] = 0.0f;
+	matrix[8] = 2.0f*x*z+2.0f*y*w;
+	matrix[9] = 2.0f*y*z-2.0f*x*w;
+	matrix[10] = 1.0f-2.0f*x*x-2.0f*y*y;
+	matrix[11] = 0.0f;
+	matrix[12] = 0.0f;
+	matrix[13] = 0.0f;
+	matrix[14] = 0.0f;
+	matrix[15] = 1.0f;
+
+	return matrix;
+}
 
 // haptic code begin
 #ifdef HAPTIC
@@ -163,8 +199,11 @@ int stereo=1; // if stereo=0 rendering mono view
 // haptic callback
 #ifdef HAPTIC
 
-HLdouble proxyPos[3];
-HLdouble placedPos[3];
+HLdouble proxyTransform[16];
+HLdouble placedTransform[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
+HLfloat* proxyRotation = new HLfloat[16];
+HLdouble grabbedRotQuat[4];
+HLfloat  placedRotation[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
 
 void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
@@ -192,9 +231,15 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 {
 	if(grabbed)
 	{
-		placedPos[0] = proxyPos[0];
-		placedPos[1] = proxyPos[1];
-		placedPos[2] = proxyPos[2];
+		// Proxy location and rotation
+		/*for(int i = 0; i < 16; i++)
+		{
+			placedTransform[i] = proxyTransform[i];
+		}*/
+
+		// Proxy Rotation
+		hlGetDoublev(HL_PROXY_ROTATION, grabbedRotQuat);
+
 	}
 	grabbed = false;
 }
@@ -477,18 +522,7 @@ void showInfo()
     ss.str("");
 
 	#ifdef HAPTIC
-	HLdouble proxyRot[4];
-	hlGetDoublev(HL_PROXY_POSITION, proxyPos);
-	hlGetDoublev(HL_PROXY_ROTATION, proxyRot);
 
-	ss << "Proxy rotation: " << proxyRot[0] << " " << proxyRot[1] << " " << proxyRot[2] << " " << proxyRot[3] << ends;
-    drawString(ss.str().c_str(), 1, 200, color, font);
-    ss.str("");
-
-
-	ss << "haptic: " << proxyPos[0] << ", " << proxyPos[1] << ", " <<proxyPos[2] << ends;
-    drawString(ss.str().c_str(), 1, 258, color, font);
-    ss.str("");
 	#endif
 
 	ss << "camera X: " << cameraAngleX << ends;
@@ -575,14 +609,15 @@ void showFPS()
 
 void displayCB()
 {	
+	#ifdef HAPTIC
+	drawSceneHaptics();
+	#endif
+
 	if (stereo==1)
 		drawInStereo();
 	else
 		drawMono();
   
-	#ifdef HAPTIC
-	drawSceneHaptics();
-	#endif
 	glutSwapBuffers();
 }
 
@@ -591,23 +626,34 @@ void drawObject(){
 
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
-		// tramsform camera
+
 		if(grabbed)
 		{
-			glTranslated(proxyPos[0], proxyPos[1], proxyPos[2]);
+			//glMultMatrixd(proxyTransform);
+			HLdouble rotation[4];
+			hlGetDoublev(HL_PROXY_ROTATION, rotation);
+			HLdouble relativeRot[4];
+			rotation[1] *= -1.0;
+			rotation[2] *= -1.0;
+			rotation[3] *= -1.0;
+			for(int i = 0; i < 4; i++)
+			{
+				relativeRot[i] = rotation[i] * grabbedRotQuat[i];
+			}
+
+			proxyRotation = getMatrixFromQuaternion(relativeRot[0], relativeRot[1], relativeRot[2], relativeRot[3]);
+			glMultMatrixf(proxyRotation);
 		}
 		else
 		{
-			glTranslated(placedPos[0], placedPos[1], placedPos[2]);
+			glMultMatrixd(placedTransform);
 		}
 
-		glTranslatef(0, 0, cameraDistance); //press down right button of the mouse
-		glRotatef(cameraAngleX, 1, 0, 0);   // pitch - press down left button of the mouse
-		glRotatef(cameraAngleY, 0, 1, 0);   // heading - press down left button of the mouse
+		glRotatef(90, 1, 0, 0);   // pitch
 
 		timer.start();  //=====================================
 
-		drawTeapot();           // render with vertex array, glDrawElements()
+		drawCylinder();
 	glPopMatrix();
     timer.stop();   //=====================================
 }
@@ -875,21 +921,18 @@ void drawSceneHaptics()
     // tramsform camera
 	if(grabbed)
 	{
-		glTranslated(proxyPos[0], proxyPos[1], proxyPos[2]);
+		glMultMatrixd(proxyTransform);
 	}
 	else
 	{
-		glTranslated(placedPos[0], placedPos[1], placedPos[2]);
+		glMultMatrixd(placedTransform);
 	}
-
-    glTranslatef(0, 0, cameraDistance);
-    glRotatef(cameraAngleX, 1, 0, 0);   // pitch
-    glRotatef(cameraAngleY, 0, 1, 0);   // heading
+    glRotatef(90, 1, 0, 0);   // pitch
 
     //if(dlUsed)
     //    glCallList(listId);     // render with display list
     //else
-        drawTeapot();           // render with vertex array, glDrawElements()
+	drawCylinder();           // render with vertex array, glDrawElements()
 
     glPopMatrix();
 
@@ -938,8 +981,8 @@ void drawHapticCursor()
     }
     
     // Get the proxy transform in world coordinates for haptic device.
-    hlGetDoublev(HL_PROXY_TRANSFORM, proxyxform);
-    glMultMatrixd(proxyxform);
+	hlGetDoublev(HL_PROXY_TRANSFORM, proxyTransform);
+    glMultMatrixd(proxyTransform);
 
     // Apply the local cursor scale factor.
     glScaled(gCursorScale, gCursorScale, gCursorScale);
@@ -1113,5 +1156,25 @@ XYZ crossProduct(XYZ p1, XYZ p2){
    p3.y = p1.z*p2.x - p1.x*p2.z;
    p3.z = p1.x*p2.y - p1.y*p2.x;
    return p3;
+}
+
+void drawCylinder()
+{
+	float shininess = 15.0f;
+
+	// set specular and shiniess using glMaterial (gold-yellow)
+	//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess); // range 0 ~ 128
+	//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+
+	// set ambient and diffuse color using glColorMaterial (gold-yellow)
+	//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	//glColor3fv(diffuseColor);
+
+	GLUquadric* quad = gluNewQuadric();
+	gluQuadricOrientation(quad, GLU_OUTSIDE);
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	gluQuadricTexture(quad, GLU_TRUE);
+	gluCylinder(quad, 2,2,5,20,20);
+	//gluDeleteQuadric(quad);
 }
 
