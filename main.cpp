@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <math.h>
 
 #include "Timer.h"
 #include <GL/glut.h>
@@ -121,9 +122,9 @@ HLdouble* differenceInMatrix(HLdouble* a, HLdouble* b)
 	return result;
 }
 
-HLfloat* getMatrixFromQuaternion(float w, float x, float y, float z)
+HLdouble* getMatrixFromQuaternion(double w, double x, double y, double z)
 {
-	HLfloat* matrix = new HLfloat[16];
+	HLdouble* matrix = new HLdouble[16];
 	
 	matrix[0] = 1.0f - 2.0f*y*y - 2.0*z*z;
 	matrix[1] = 2.0f*x*y + 2.0f*z*w;
@@ -143,6 +144,32 @@ HLfloat* getMatrixFromQuaternion(float w, float x, float y, float z)
 	matrix[15] = 1.0f;
 
 	return matrix;
+}
+
+HLdouble multiResult[4];
+
+HLdouble* multiplyQuaternion(HLdouble a[], HLdouble b[])
+{
+	double sqsum;
+
+	HLdouble* result = new HLdouble[4];
+	result[0] = a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3];
+	result[1] = a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2];
+	result[2] = a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1];
+	result[3] = a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0];
+
+	for(int i = 0; i < 4; i++)
+	{
+		sqsum += result[i] * result[i];
+	}
+
+	double rootsum = sqrt(sqsum);
+
+	for(int i = 0; i < 4; i++)
+	{
+		result[i] = result[i] / rootsum;
+	}
+	return result;
 }
 
 // haptic code begin
@@ -199,11 +226,17 @@ int stereo=1; // if stereo=0 rendering mono view
 // haptic callback
 #ifdef HAPTIC
 
+// unused
 HLdouble proxyTransform[16];
-HLdouble placedTransform[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
-HLfloat* proxyRotation = new HLfloat[16];
-HLdouble grabbedRotQuat[4];
-HLfloat  placedRotation[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
+
+HLdouble* proxyRotation;
+HLdouble* placedRotation;
+HLdouble* rotationProxyToPlaced;
+HLdouble grabbedProxyRot[4];
+
+int xrot;
+int yrot;
+
 HLdouble proxyPosition[3];
 HLdouble proxyObjectTranslation[3];
 HLdouble placedTranslation[3] = {0.0, 0.0, 0.0};
@@ -226,6 +259,18 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 	if(touched)
 	{
 		grabbed = true;
+		// Proxy Rotation
+		hlGetDoublev(HL_PROXY_ROTATION, grabbedProxyRot);
+
+		HLdouble currentProxy[4];
+		for(int i = 0; i < 4; i++)
+		{
+			currentProxy[i] = grabbedProxyRot[i];
+		}
+
+		currentProxy[0] *=-1.0;
+		rotationProxyToPlaced = multiplyQuaternion(placedRotation, currentProxy);
+
 		HLdouble grabbedProxy[3];
 		hlGetDoublev(HL_PROXY_POSITION, grabbedProxy);
 		for(int i = 0; i < 3; i++)
@@ -240,15 +285,6 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 {
 	if(grabbed)
 	{
-		// Proxy location and rotation
-		/*for(int i = 0; i < 16; i++)
-		{
-			placedTransform[i] = proxyTransform[i];
-		}*/
-
-		// Proxy Rotation
-		hlGetDoublev(HL_PROXY_ROTATION, grabbedRotQuat);
-
 		for(int i = 0; i < 3; i++)
 		{
 			placedTranslation[i] += proxyObjectTranslation[i];
@@ -281,6 +317,11 @@ int main(int argc, char **argv)
 {
     // initialize global variables
     initSharedMem();
+	HLdouble quatIdentity[4] = {1.0, 0, 0, 0};
+	HLdouble rotation90x[4] = {0.7071, 0.7071, 0, 0};
+	proxyRotation = getMatrixFromQuaternion(quatIdentity[0], quatIdentity[1],quatIdentity[2],quatIdentity[3]);
+	placedRotation = rotation90x;
+	rotationProxyToPlaced = quatIdentity;
 
 	// set initial color of teapot
 	for (int i=0; i<colorIndex; i++){
@@ -553,6 +594,18 @@ void showInfo()
     drawString(ss.str().c_str(), 1, 216, color, font);
     ss.str("");
 
+	ss << "grabbed proxy: " << grabbedProxyRot[0] << " " << grabbedProxyRot[1] << " " << grabbedProxyRot[2] << " " << grabbedProxyRot[3] << " " << ends;
+    drawString(ss.str().c_str(), 1, 210, color, font);
+    ss.str("");
+
+	ss << "rotation proxy to placed: " << rotationProxyToPlaced[0] << " " << rotationProxyToPlaced[1] << " " << rotationProxyToPlaced[2] << " " << rotationProxyToPlaced[3] << " " << ends;
+    drawString(ss.str().c_str(), 1, 204, color, font);
+    ss.str("");
+
+	ss << "multi: " << multiResult[0] << " " << multiResult[1] << " " << multiResult[2] << " " << multiResult[3] << " " << ends;
+    drawString(ss.str().c_str(), 1, 196, color, font);
+    ss.str("");
+
     ss << "Press SPACE key to toggle stereo mode." << ends;
     drawString(ss.str().c_str(), 1, 1, color, font);
 
@@ -643,36 +696,33 @@ void drawObject(){
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
 
+		HLdouble currentProxyRot[4];
+		HLdouble copy[4];
+		hlGetDoublev(HL_PROXY_ROTATION, currentProxyRot);
+
 		if(grabbed)
 		{
-			HLdouble rotation[4];
-			hlGetDoublev(HL_PROXY_ROTATION, rotation);
-			HLdouble relativeRot[4];
-			rotation[1] *= -1.0;
-			rotation[2] *= -1.0;
-			rotation[3] *= -1.0;
-			for(int i = 0; i < 4; i++)
-			{
-				relativeRot[i] = rotation[i] * grabbedRotQuat[i];
-			}
-
-			proxyRotation = getMatrixFromQuaternion(relativeRot[0], relativeRot[1], relativeRot[2], relativeRot[3]);
+			/*
+			HLdouble* relativeRot;
+			grabbedProxyRot[1] *=-1.0;
+			grabbedProxyRot[2] *=-1.0;
+			grabbedProxyRot[3] *=-1.0;
+			relativeRot = multiplyQuaternion(currentProxyRot, grabbedProxyRot);
+			proxyRotation = getMatrixFromQuaternion(currentProxyRot[0], currentProxyRot[1], currentProxyRot[2], currentProxyRot[3]);*/
 
 			hlGetDoublev(HL_PROXY_POSITION, proxyPosition);
-
 			for(int i = 0; i < 3; i++)
 			{
 				placedTranslation[i] += proxyPosition[i] - placedTranslation[i];
 			}
 		}
-		else
-		{
-
-		}
-
 		glTranslated(proxyObjectTranslation[0], proxyObjectTranslation[1], proxyObjectTranslation[2]);
 		glTranslated(placedTranslation[0], placedTranslation[1], placedTranslation[2]);
-		glRotatef(90, 1, 0, 0);   // pitch
+		//glMultMatrixd(getMatrixFromQuaternion(rotationProxyToPlaced[0],rotationProxyToPlaced[1],rotationProxyToPlaced[2],rotationProxyToPlaced[3]));
+		//glMultMatrixd(proxyRotation);
+		glRotated(xrot,1,0,0);
+		glRotated(yrot,0,1,0);
+		glMultMatrixd(getMatrixFromQuaternion(placedRotation[0],placedRotation[1],placedRotation[2],placedRotation[3]));
 
 		timer.start();  //=====================================
 
@@ -708,7 +758,12 @@ void drawSceneHaptics()
 
 		glTranslated(proxyObjectTranslation[0], proxyObjectTranslation[1], proxyObjectTranslation[2]);
 		glTranslated(placedTranslation[0], placedTranslation[1], placedTranslation[2]);
-		glRotatef(90, 1, 0, 0);   // pitch
+		//glMultMatrixd(getMatrixFromQuaternion(rotationProxyToPlaced[0],rotationProxyToPlaced[1],rotationProxyToPlaced[2],rotationProxyToPlaced[3]));
+		//glMultMatrixd(proxyRotation);
+		glRotated(xrot,0,1,0);
+		glRotated(yrot,1,0,0);
+		glRotated(yrot,1,1,1);
+		glMultMatrixd(getMatrixFromQuaternion(placedRotation[0],placedRotation[1],placedRotation[2],placedRotation[3]));
 
 		drawCylinder();// render with vertex array, glDrawElements()
 
@@ -789,8 +844,7 @@ void keyboardCB(unsigned char key, int x, int y)
         exit(0);
         break;
 
-    case 'd': // switch rendering modes (fill -> wire -> point)
-    case 'D':
+    case 'f':
         drawMode = ++drawMode % 3;
         if(drawMode == 0)        // fill mode
         {
@@ -819,6 +873,31 @@ void keyboardCB(unsigned char key, int x, int y)
 	case 'C':
 		touched=!touched;
 		color();
+		break;
+
+	case 'w':
+		if(grabbed)
+		{
+			yrot = (yrot + 1)%360;
+		}
+		break;
+	case 's':
+		if(grabbed)
+		{
+			yrot = (yrot - 1)%360;
+		}
+		break;
+	case 'a':
+		if(grabbed)
+		{
+			xrot = (xrot - 1)%360;
+		}
+		break;
+	case 'd':
+		if(grabbed)
+		{
+			xrot = (xrot + 1)%360;
+		}
 		break;
 
     default:
