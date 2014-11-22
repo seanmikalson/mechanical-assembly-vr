@@ -204,7 +204,7 @@ HLdouble placedTransform[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
 HLfloat* proxyRotation = new HLfloat[16];
 HLdouble grabbedRotQuat[4];
 HLfloat  placedRotation[16] = {1.0, 0,0,0,0,1.0,0,0,0,0,1.0,0,0,0,0,1.0};
-HLdouble grabbedTranslation[3];
+HLdouble proxyPosition[3];
 HLdouble proxyObjectTranslation[3];
 HLdouble placedTranslation[3] = {0.0, 0.0, 0.0};
 
@@ -248,6 +248,12 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 
 		// Proxy Rotation
 		hlGetDoublev(HL_PROXY_ROTATION, grabbedRotQuat);
+
+		for(int i = 0; i < 3; i++)
+		{
+			placedTranslation[i] += proxyObjectTranslation[i];
+			proxyObjectTranslation[i] = 0.0;
+		}
 
 	}
 	grabbed = false;
@@ -626,19 +632,19 @@ void displayCB()
 		drawInStereo();
 	else
 		drawMono();
-  
+
+
 	glutSwapBuffers();
 }
 
 void drawObject(){
-	 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
 
 		if(grabbed)
 		{
-			//glMultMatrixd(proxyTransform);
 			HLdouble rotation[4];
 			hlGetDoublev(HL_PROXY_ROTATION, rotation);
 			HLdouble relativeRot[4];
@@ -651,18 +657,17 @@ void drawObject(){
 			}
 
 			proxyRotation = getMatrixFromQuaternion(relativeRot[0], relativeRot[1], relativeRot[2], relativeRot[3]);
-			//glMultMatrixf(proxyRotation);
 
-			hlGetDoublev(HL_PROXY_POSITION, grabbedTranslation);
+			hlGetDoublev(HL_PROXY_POSITION, proxyPosition);
 
 			for(int i = 0; i < 3; i++)
 			{
-				placedTranslation[i] += grabbedTranslation[i] - placedTranslation[i];
+				placedTranslation[i] += proxyPosition[i] - placedTranslation[i];
 			}
 		}
 		else
 		{
-			glMultMatrixd(placedTransform);
+
 		}
 
 		glTranslated(proxyObjectTranslation[0], proxyObjectTranslation[1], proxyObjectTranslation[2]);
@@ -680,72 +685,51 @@ void drawObject(){
  The main routine for rendering scene haptics.
 *******************************************************************************/
 void drawSceneHaptics()
-{    
-    // Start haptic frame.  (Must do this before rendering any haptic shapes.)
-    hlBeginFrame();
+{   
+	// Start haptic frame.  (Must do this before rendering any haptic shapes.)
+	hlBeginFrame();
 
-    // Set material properties for the shapes to be drawn.
-    hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
-
-    // Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
-    // geometry for haptic rendering.
-    hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, gTeapotShapeId);
-
-    // Use OpenGL commands to create geometry.
-	if(grabbed)
+	if(!grabbed)
 	{
-		//glMultMatrixd(proxyTransform);
-		HLdouble rotation[4];
-		hlGetDoublev(HL_PROXY_ROTATION, rotation);
-		HLdouble relativeRot[4];
-		rotation[1] *= -1.0;
-		rotation[2] *= -1.0;
-		rotation[3] *= -1.0;
-		for(int i = 0; i < 4; i++)
-		{
-			relativeRot[i] = rotation[i] * grabbedRotQuat[i];
-		}
+		// Set material properties for the shapes to be drawn.
+		float stiffness = 0.7f;
+		float damping = 0.1f;
+		float staticFriction = 0.2f;
+		float dynFriction = 0.3f;
 
-		proxyRotation = getMatrixFromQuaternion(relativeRot[0], relativeRot[1], relativeRot[2], relativeRot[3]);
-		//glMultMatrixf(proxyRotation);
+		// Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
+		// geometry for haptic rendering.
+		hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, gTeapotShapeId);
 
-		hlGetDoublev(HL_PROXY_POSITION, grabbedTranslation);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, stiffness);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, damping);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, staticFriction);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, dynFriction);
 
-		for(int i = 0; i < 3; i++)
-		{
-			placedTranslation[i] += grabbedTranslation[i] - placedTranslation[i];
-		}
+		glTranslated(proxyObjectTranslation[0], proxyObjectTranslation[1], proxyObjectTranslation[2]);
+		glTranslated(placedTranslation[0], placedTranslation[1], placedTranslation[2]);
+		glRotatef(90, 1, 0, 0);   // pitch
+
+		drawCylinder();// render with vertex array, glDrawElements()
+
+		glPopMatrix();
+
+
+		// End the shape.
+		hlEndShape();
 	}
 	else
 	{
-		glMultMatrixd(placedTransform);
+		hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, gTeapotShapeId);
+
+		hlEndShape();
 	}
 
-	glTranslated(proxyObjectTranslation[0], proxyObjectTranslation[1], proxyObjectTranslation[2]);
-	glTranslated(placedTranslation[0], placedTranslation[1], placedTranslation[2]);
-	glRotatef(90, 1, 0, 0);   // pitch
-
-    //if(dlUsed)
-    //    glCallList(listId);     // render with display list
-    //else
-        drawCylinder();// render with vertex array, glDrawElements()
-
-    glPopMatrix();
-
-
-    // End the shape.
-    hlEndShape();
-
-    // End the haptic frame.
-    hlEndFrame();
+	// End the haptic frame.
+	hlEndFrame();
 
 	// Call any event callbacks that have been triggered.
-    hlCheckEvents();
-
-
+	hlCheckEvents();
 }
 
 void reshapeCB(int w, int h)
