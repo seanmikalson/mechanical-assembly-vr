@@ -59,7 +59,7 @@ static HHD ghHD = HD_INVALID_HANDLE;
 static HHLRC ghHLRC = 0;
 
 /* Shape id for shape we will render haptically. */
-HLuint gTeapotShapeId;
+HLuint startId;
 
 #define CURSOR_SCALE_SIZE 60
 static double gCursorScale;
@@ -114,6 +114,7 @@ void color();
 void exitHandler(void);
 void initHL();
 void drawSceneHaptics();
+
 void drawHapticCursor();
 void updateWorkspace();
 #endif
@@ -161,11 +162,61 @@ int stereo=1; // if stereo=0 rendering mono view
 
 // haptic callback
 #ifdef HAPTIC
+
+HLfloat proxyObjectDiff[3];
+HLdouble proxyPos[3];
+
 void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	touched=!touched;
-	color();
+	printf("touched: %d",object);
+	(*boundingVolume.getGameObjectFromId(object)).setTouched(true);
+}
+
+void HLCALLBACK untouchShapeCallback(HLenum event, HLuint object, HLenum thread, 
+                                   HLcache *cache, void *userdata)
+{
+	printf("untouch: %d",object);
+	(*boundingVolume.getGameObjectFromId(object)).setTouched(false);
+}
+
+void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread, 
+                                   HLcache *cache, void *userdata)
+{
+	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	{
+		GameObject obj = (*boundingVolume.getGameObject(i));
+		if(obj.isTouched())
+		{
+			obj.setGrabbed(true);
+
+			HLdouble grabbedProxy[3];
+			hlGetDoublev(HL_PROXY_POSITION, grabbedProxy);
+			proxyObjectDiff[0] = obj.getPosition().getX() - grabbedProxy[0];
+			proxyObjectDiff[1] = obj.getPosition().getY() - grabbedProxy[1];
+			proxyObjectDiff[2] = obj.getPosition().getZ() - grabbedProxy[2];
+			
+			// Found grabbed object so just exit the loop
+			break;
+		}
+	}
+}
+
+void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread, 
+                                   HLcache *cache, void *userdata)
+{
+	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	{
+		GameObject obj = (*boundingVolume.getGameObject(i));
+		if(obj.isGrabbed())
+		{
+			obj.adjustPosition(proxyObjectDiff[0], proxyObjectDiff[1], proxyObjectDiff[2]);
+		}
+		obj.setGrabbed(false);
+	}
+	proxyObjectDiff[0] = 0.0;
+	proxyObjectDiff[1] = 0.0;
+	proxyObjectDiff[2] = 0.0;	
 }
 #endif
 
@@ -190,6 +241,7 @@ int main(int argc, char **argv)
     // initialize global variables
     initSharedMem();
 	boundingVolume = BoundingVolume();
+
 	// set initial color of teapot
 	for (int i=0; i<colorIndex; i++){
 		diffuseColor[i]=diffuseColorRed[i];
@@ -553,6 +605,17 @@ void drawObject(){
 
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
+
+	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	{
+		GameObject obj = (*boundingVolume.getGameObject(i));
+		if(obj.isGrabbed())
+		{
+			hlGetDoublev(HL_PROXY_POSITION, proxyPos);
+			obj.adjustPosition(proxyPos[0], proxyPos[1],proxyPos[2]);
+		}
+		obj.adjustPosition(proxyObjectDiff[0], proxyObjectDiff[1], proxyObjectDiff[2]);
+	}
 		// tramsform camera
 		glTranslatef(0, 0, cameraDistance); //press down right button of the mouse
 		glRotatef(cameraAngleX, 1, 0, 0);   // pitch - press down left button of the mouse
@@ -565,6 +628,52 @@ void drawObject(){
 		glEnd();// render with vertex array, glDrawElements()
 	glPopMatrix();
     timer.stop();   //=====================================
+}
+/*******************************************************************************
+ The main routine for rendering scene haptics.
+*******************************************************************************/
+void drawSceneHaptics()
+{    
+    // Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
+    // geometry for haptic rendering.
+	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	{
+				// Start haptic frame.  (Must do this before rendering any haptic shapes.)
+		hlBeginFrame();
+
+		GameObject obj = (*boundingVolume.getGameObject(i));
+
+		hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, obj.shapeId);
+
+		// Set material properties for the shapes to be drawn.
+		hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
+		hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
+
+		// Use OpenGL commands to create geometry.
+		glPushMatrix();
+
+		// tramsform camera
+		glTranslatef(0, 0, cameraDistance);
+		glRotatef(cameraAngleX, 1, 0, 0);   // pitch
+		glRotatef(cameraAngleY, 0, 1, 0);   // heading
+
+		glBegin(GL_TRIANGLES);
+		obj.draw();
+		glEnd();
+		glPopMatrix();
+
+
+		// End the shape.
+		hlEndShape();
+		
+		// End the haptic frame.
+		hlEndFrame();
+		
+		// Call any event callbacks that have been triggered.
+		hlCheckEvents();
+	}
 }
 
 void reshapeCB(int w, int h)
@@ -734,13 +843,23 @@ void initHL()
     // Enable optimization of the viewing parameters when rendering
     // geometry for OpenHaptics.
     hlEnable(HL_HAPTIC_CAMERA_VIEW);
+	startId = hlGenShapes(7);
 
-    // Generate id's for the teapot shape.
-    gTeapotShapeId = hlGenShapes(1);
+	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	{
+		hlAddEventCallback(HL_EVENT_TOUCH, startId, HL_CLIENT_THREAD, 
+                       &touchShapeCallback, NULL);
+		hlAddEventCallback(HL_EVENT_TOUCH, startId, HL_CLIENT_THREAD, 
+                       &untouchShapeCallback, NULL);
+		(*boundingVolume.getGameObject(i)).shapeId = startId++;
+
+	}
 
 	 // Setup event callbacks.
-    hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
-                       &touchShapeCallback, NULL);
+	hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+                       &button1DownCallback, NULL);
+	hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+                       &button1UpCallback, NULL);
 
 
     hlTouchableFace(HL_FRONT); // define force feedback from front faces of teapot
@@ -753,7 +872,7 @@ void initHL()
 void exitHandler()
 {
     // Deallocate the sphere shape id we reserved in initHL.
-    hlDeleteShapes(gTeapotShapeId, 1);
+	hlDeleteShapes(startId, 7);
 
     // Free up the haptic rendering context.
     hlMakeCurrent(NULL);
@@ -801,53 +920,6 @@ hluFitWorkspaceBox(modelview, minPoint, maxPoint);
     // Compute cursor scale.
     gCursorScale = hluScreenToModelScale(modelview, projection, viewport);
     gCursorScale *= CURSOR_SCALE_SIZE;
-}
-/*******************************************************************************
- The main routine for rendering scene haptics.
-*******************************************************************************/
-void drawSceneHaptics()
-{    
-    // Start haptic frame.  (Must do this before rendering any haptic shapes.)
-    hlBeginFrame();
-
-    // Set material properties for the shapes to be drawn.
-    hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
-    hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
-
-    // Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
-    // geometry for haptic rendering.
-    hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, gTeapotShapeId);
-
-    // Use OpenGL commands to create geometry.
-       glPushMatrix();
-
-    // tramsform camera
-    glTranslatef(0, 0, cameraDistance);
-    glRotatef(cameraAngleX, 1, 0, 0);   // pitch
-    glRotatef(cameraAngleY, 0, 1, 0);   // heading
-
-    //if(dlUsed)
-    //    glCallList(listId);     // render with display list
-    //else
-        //drawTeapot();// render with vertex array, glDrawElements()
-	glBegin(GL_TRIANGLES);
-	boundingVolume.draw();
-	glEnd();
-    glPopMatrix();
-
-
-    // End the shape.
-    hlEndShape();
-
-    // End the haptic frame.
-    hlEndFrame();
-
-	// Call any event callbacks that have been triggered.
-    hlCheckEvents();
-
-
 }
 /*******************************************************************************
  Draws a 3D cursor for the haptic device using the current local transform,

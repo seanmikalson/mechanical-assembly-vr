@@ -7,16 +7,23 @@ class GameObject
 		List<VisualData> visualData;
 		List<Vertex> forces;
 		PhysicsData physicsData;
+		bool touched;
+		bool grabbed;
 
 	public: 
 		GameObject();
 		GameObject(GLfloat posx,GLfloat posy,GLfloat posz,int visSize,int forceSize);
 		GameObject(const GameObject& rhs);
 
+		unsigned int shapeId;
+
 		//-----------------------------------------
 		// Set Functions
 		//-----------------------------------------
 		void setPosition(GLfloat x, GLfloat y, GLfloat z);
+		void setTouched(bool touch) {touched = touch;};
+		void setGrabbed(bool grabbedv){grabbed = grabbedv;};
+		
 
 		//-----------------------------------------
 		// Get Functions
@@ -26,6 +33,9 @@ class GameObject
 		Vertex getPosition(){return physicsData.getPosition();};
 		int getMaxVisData(){return visualData.getMaxItems();};
 		int getNoVisData(){return visualData.getNoItems();};
+		bool isTouched(){return touched;};
+		bool isGrabbed(){return grabbed;};
+
 		
 		//-----------------------------------------
 		// Class Functions

@@ -104,6 +104,10 @@ GameObject* BoundingVolume::getGameObject(int index)
 {
 	return gameObjects.getItem(index);
 }
+int BoundingVolume::getNoItems()
+{
+	return gameObjects.getNoItems();
+}
 US_INT BoundingVolume::searchForPotentialCollisions(US_INT index, US_INT* possibleCollisions,GLfloat elapsedTime)
 {
 	#define FOR_ALL_OTHER_OBJECTS for(int b = 0; b < noObjects; b++){ if(b != index) {
@@ -181,4 +185,18 @@ void BoundingVolume::animate(GLfloat elapsedTime)
 		}
 	}
 	delete []possibleCollisions;
+}
+
+GameObject* BoundingVolume::getGameObjectFromId(unsigned int id)
+{
+	for(int i = 0; i < gameObjects.getNoItems(); i++)
+	{
+		GameObject* obj = gameObjects.getItem(i);
+		printf("object id: %d", (*obj).shapeId);
+		if((*obj).shapeId == id)
+		{
+			return obj;
+		}
+	}
+	return NULL;
 }

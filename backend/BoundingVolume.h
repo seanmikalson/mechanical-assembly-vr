@@ -13,4 +13,6 @@ public:
 	void adjustPositions(GLfloat,GLfloat,GLfloat);
 	void animate(GLfloat);
 	GameObject* getGameObject(int index);
+	int getNoItems();
+	GameObject* getGameObjectFromId(unsigned int id);
 };
