@@ -9,13 +9,12 @@ class GameObject
 		PhysicsData physicsData;
 		bool touched;
 		bool grabbed;
+		unsigned int shapeId;
 
 	public: 
 		GameObject();
 		GameObject(GLfloat posx,GLfloat posy,GLfloat posz,int visSize,int forceSize);
 		GameObject(const GameObject& rhs);
-
-		unsigned int shapeId;
 
 		//-----------------------------------------
 		// Set Functions
@@ -23,6 +22,7 @@ class GameObject
 		void setPosition(GLfloat x, GLfloat y, GLfloat z);
 		void setTouched(bool touch) {touched = touch;};
 		void setGrabbed(bool grabbedv){grabbed = grabbedv;};
+		void setShapeId(unsigned int id){shapeId = id;};
 		
 
 		//-----------------------------------------
@@ -35,6 +35,7 @@ class GameObject
 		int getNoVisData(){return visualData.getNoItems();};
 		bool isTouched(){return touched;};
 		bool isGrabbed(){return grabbed;};
+		unsigned int getShapeId(){return shapeId;};
 
 		
 		//-----------------------------------------

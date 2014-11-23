@@ -169,35 +169,32 @@ HLdouble proxyPos[3];
 void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	printf("touched: %d",object);
+	printf("touched: %d\n",object);
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(true);
 }
 
 void HLCALLBACK untouchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	printf("untouch: %d",object);
+	printf("untouch: %d\n",object);
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(false);
 }
 
 void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
+	printf("button 1 pressed %d\n",object);
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
-		GameObject obj = (*boundingVolume.getGameObject(i));
-		if(obj.isTouched())
+		if((*boundingVolume.getGameObject(i)).isTouched())
 		{
-			obj.setGrabbed(true);
+			(*boundingVolume.getGameObject(i)).setGrabbed(true);
 
 			HLdouble grabbedProxy[3];
 			hlGetDoublev(HL_PROXY_POSITION, grabbedProxy);
-			proxyObjectDiff[0] = obj.getPosition().getX() - grabbedProxy[0];
-			proxyObjectDiff[1] = obj.getPosition().getY() - grabbedProxy[1];
-			proxyObjectDiff[2] = obj.getPosition().getZ() - grabbedProxy[2];
-			
-			// Found grabbed object so just exit the loop
-			break;
+			proxyObjectDiff[0] = (*boundingVolume.getGameObject(i)).getPosition().getX() - grabbedProxy[0];
+			proxyObjectDiff[1] = (*boundingVolume.getGameObject(i)).getPosition().getY() - grabbedProxy[1];
+			proxyObjectDiff[2] = (*boundingVolume.getGameObject(i)).getPosition().getZ() - grabbedProxy[2];
 		}
 	}
 }
@@ -205,14 +202,10 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
+	printf("button 1 released %d\n",object);
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
-		GameObject obj = (*boundingVolume.getGameObject(i));
-		if(obj.isGrabbed())
-		{
-			obj.adjustPosition(proxyObjectDiff[0], proxyObjectDiff[1], proxyObjectDiff[2]);
-		}
-		obj.setGrabbed(false);
+		(*boundingVolume.getGameObject(i)).setGrabbed(false);
 	}
 	proxyObjectDiff[0] = 0.0;
 	proxyObjectDiff[1] = 0.0;
@@ -606,20 +599,15 @@ void drawObject(){
     // save the initial ModelView matrix before modifying ModelView matrix
 	glPushMatrix();
 
-	for(int i = 0; i < boundingVolume.getNoItems(); i++)
-	{
-		GameObject obj = (*boundingVolume.getGameObject(i));
-		if(obj.isGrabbed())
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
 		{
-			hlGetDoublev(HL_PROXY_POSITION, proxyPos);
-			obj.adjustPosition(proxyPos[0], proxyPos[1],proxyPos[2]);
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				hlGetDoublev(HL_PROXY_POSITION, proxyPos);
+				(*boundingVolume.getGameObject(i)).adjustPosition(proxyPos[0] - (*boundingVolume.getGameObject(i)).getPosition().getX(), proxyPos[1] - (*boundingVolume.getGameObject(i)).getPosition().getY(),proxyPos[2] - (*boundingVolume.getGameObject(i)).getPosition().getZ());
+				(*boundingVolume.getGameObject(i)).adjustPosition(proxyObjectDiff[0], proxyObjectDiff[1], proxyObjectDiff[2]);
+			}
 		}
-		obj.adjustPosition(proxyObjectDiff[0], proxyObjectDiff[1], proxyObjectDiff[2]);
-	}
-		// tramsform camera
-		glTranslatef(0, 0, cameraDistance); //press down right button of the mouse
-		glRotatef(cameraAngleX, 1, 0, 0);   // pitch - press down left button of the mouse
-		glRotatef(cameraAngleY, 0, 1, 0);   // heading - press down left button of the mouse
 
 		timer.start();  //=====================================
 		//drawTeapot();
@@ -634,46 +622,40 @@ void drawObject(){
 *******************************************************************************/
 void drawSceneHaptics()
 {    
+	// Start haptic frame.  (Must do this before rendering any haptic shapes.)
+	hlBeginFrame();
+
+	// Set material properties for the shapes to be drawn.
+	hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
+	hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
+	hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
+	hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
     // Start a new haptic shape.  Use the feedback buffer to capture OpenGL 
     // geometry for haptic rendering.
-	for(int i = 0; i < boundingVolume.getNoItems(); i++)
+	for(int i = 0; i < boundingVolume.getNoItems()-1; i++)
 	{
-				// Start haptic frame.  (Must do this before rendering any haptic shapes.)
-		hlBeginFrame();
+		hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, (*boundingVolume.getGameObject(i)).getShapeId());
 
-		GameObject obj = (*boundingVolume.getGameObject(i));
+		if(!(*boundingVolume.getGameObject(i)).isGrabbed())
+		{
+			// Use OpenGL commands to create geometry.
+			glPushMatrix();
 
-		hlBeginShape(HL_SHAPE_FEEDBACK_BUFFER, obj.shapeId);
-
-		// Set material properties for the shapes to be drawn.
-		hlMaterialf(HL_FRONT_AND_BACK, HL_STIFFNESS, 0.7f);
-		hlMaterialf(HL_FRONT_AND_BACK, HL_DAMPING, 0.1f);
-		hlMaterialf(HL_FRONT_AND_BACK, HL_STATIC_FRICTION, 0.2f);
-		hlMaterialf(HL_FRONT_AND_BACK, HL_DYNAMIC_FRICTION, 0.3f);
-
-		// Use OpenGL commands to create geometry.
-		glPushMatrix();
-
-		// tramsform camera
-		glTranslatef(0, 0, cameraDistance);
-		glRotatef(cameraAngleX, 1, 0, 0);   // pitch
-		glRotatef(cameraAngleY, 0, 1, 0);   // heading
-
-		glBegin(GL_TRIANGLES);
-		obj.draw();
-		glEnd();
-		glPopMatrix();
-
+			glBegin(GL_TRIANGLES);
+			(*boundingVolume.getGameObject(i)).draw();
+			glEnd();
+			glPopMatrix();
+		}
 
 		// End the shape.
 		hlEndShape();
-		
-		// End the haptic frame.
-		hlEndFrame();
-		
-		// Call any event callbacks that have been triggered.
-		hlCheckEvents();
 	}
+			
+	// End the haptic frame.
+	hlEndFrame();
+		
+	// Call any event callbacks that have been triggered.
+	hlCheckEvents();
 }
 
 void reshapeCB(int w, int h)
@@ -733,8 +715,8 @@ void keyboardCB(unsigned char key, int x, int y)
         exit(0);
         break;
 
-    case 'd': // switch rendering modes (fill -> wire -> point)
-    case 'D':
+    case 'f': // switch rendering modes (fill -> wire -> point)
+    case 'F':
         drawMode = ++drawMode % 3;
         if(drawMode == 0)        // fill mode
         {
@@ -763,6 +745,60 @@ void keyboardCB(unsigned char key, int x, int y)
 	case 'C':
 		touched=!touched;
 		color();
+		break;
+	case 'w':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateX(DTOR);
+			}
+		}
+		break;
+	case 's':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateX(DTOR*-1.0);
+			}
+		}
+		break;
+	case 'a':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateY(DTOR*-1.0);
+			}
+		}
+		break;
+	case 'd':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateY(DTOR);
+			}
+		}
+		break;
+	case 'q':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateZ(DTOR*-1.0);
+			}
+		}
+		break;
+	case 'e':
+		for(int i = 0; i < boundingVolume.getNoItems(); i++)
+		{
+			if((*boundingVolume.getGameObject(i)).isGrabbed())
+			{
+				(*boundingVolume.getGameObject(i)).rotateZ(DTOR);
+			}
+		}
 		break;
 
     default:
@@ -844,21 +880,22 @@ void initHL()
     // geometry for OpenHaptics.
     hlEnable(HL_HAPTIC_CAMERA_VIEW);
 	startId = hlGenShapes(7);
+	printf("startid: %d\n", startId);
 
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
-		hlAddEventCallback(HL_EVENT_TOUCH, startId, HL_CLIENT_THREAD, 
-                       &touchShapeCallback, NULL);
-		hlAddEventCallback(HL_EVENT_TOUCH, startId, HL_CLIENT_THREAD, 
-                       &untouchShapeCallback, NULL);
-		(*boundingVolume.getGameObject(i)).shapeId = startId++;
-
+		(*boundingVolume.getGameObject(i)).setShapeId(startId+i);
 	}
 
+	hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+                    &touchShapeCallback, NULL);
+	hlAddEventCallback(HL_EVENT_UNTOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+                    &untouchShapeCallback, NULL);
+
 	 // Setup event callbacks.
-	hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+	hlAddEventCallback(HL_EVENT_1BUTTONDOWN, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
                        &button1DownCallback, NULL);
-	hlAddEventCallback(HL_EVENT_TOUCH, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
+	hlAddEventCallback(HL_EVENT_1BUTTONUP, HL_OBJECT_ANY, HL_CLIENT_THREAD, 
                        &button1UpCallback, NULL);
 
 

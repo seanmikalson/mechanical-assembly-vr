@@ -24,8 +24,8 @@ BoundingVolume::BoundingVolume()
 
 	
 	//setup engine
-	gameObjects.addItem(EngineBlock(2.0f,0.0f,0.0f,-100.0f,Grey));
-	gameObjects.addItem(EngineHead(4.0f,13.0f,0.0f,-100.0f,Red));
+	gameObjects.addItem(EngineBlock(2.0f,0.0f,0.0f,0.0f,Grey));
+	gameObjects.addItem(EngineHead(4.0f,13.0f,0.0f,0.0f,Red));
 	gameObjects[1].rotateZ(-45.0f * DEGREES_TO_RAD);
 
 	Vertex movement = ((*(*gameObjects[0].getVisualData(0)).getVertex(0)) + gameObjects[0].getPosition() + (*gameObjects[0].getVisualData(0)).getPosition()) - 
@@ -38,7 +38,7 @@ BoundingVolume::BoundingVolume()
 	temp.addItem(*floor);
 	temp.addItem(*roof);
 	temp.addItem(*Tan);
-	gameObjects.addItem(WorkShop(30.0f,0.0f,0.0f,-100.0f,temp));
+	gameObjects.addItem(WorkShop(30.0f,0.0f,0.0f,0.0f,temp));
 
 	//setup table
 	//Vertex cubeScale = Vertex(20.0f,4.0f,20.0f);
@@ -191,11 +191,9 @@ GameObject* BoundingVolume::getGameObjectFromId(unsigned int id)
 {
 	for(int i = 0; i < gameObjects.getNoItems(); i++)
 	{
-		GameObject* obj = gameObjects.getItem(i);
-		printf("object id: %d", (*obj).shapeId);
-		if((*obj).shapeId == id)
+		if((*gameObjects.getItem(i)).getShapeId() == id)
 		{
-			return obj;
+			return gameObjects.getItem(i);
 		}
 	}
 	return NULL;
