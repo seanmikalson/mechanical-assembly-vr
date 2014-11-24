@@ -208,6 +208,8 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 	proxyObjectDiff[0] = 0.0;
 	proxyObjectDiff[1] = 0.0;
 	proxyObjectDiff[2] = 0.0;	
+
+
 }
 #endif
 
@@ -332,6 +334,8 @@ void initGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     //glEnable(GL_CULL_FACE);
 
      // track material ambient and diffuse from surface color, call it before glEnable(GL_COLOR_MATERIAL)
