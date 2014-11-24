@@ -24,8 +24,8 @@ BoundingVolume::BoundingVolume()
 
 	
 	//setup engine
-	gameObjects.addItem(EngineBlock(2.0f,0.0f,0.0f,0.0f,Grey));
-	gameObjects.addItem(EngineHead(4.0f,13.0f,0.0f,0.0f,Red));
+	gameObjects.addItem(EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(EngineHead(4.0f,13.0f,0.0f,-10.0f,Red));
 	gameObjects[1].rotateZ(-45.0f * DEGREES_TO_RAD);
 
 	Vertex movement = ((*(*gameObjects[0].getVisualData(0)).getVertex(0)) + gameObjects[0].getPosition() + (*gameObjects[0].getVisualData(0)).getPosition()) - 

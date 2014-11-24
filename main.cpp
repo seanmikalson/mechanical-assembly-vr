@@ -169,14 +169,12 @@ HLdouble proxyPos[3];
 void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	printf("touched: %d\n",object);
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(true);
 }
 
 void HLCALLBACK untouchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	printf("untouch: %d\n",object);
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(false);
 }
 
@@ -787,7 +785,7 @@ void keyboardCB(unsigned char key, int x, int y)
 		{
 			if((*boundingVolume.getGameObject(i)).isGrabbed())
 			{
-				(*boundingVolume.getGameObject(i)).rotateZ(DTOR*-1.0);
+				(*boundingVolume.getGameObject(i)).rotateZ(DTOR);
 			}
 		}
 		break;
@@ -796,7 +794,7 @@ void keyboardCB(unsigned char key, int x, int y)
 		{
 			if((*boundingVolume.getGameObject(i)).isGrabbed())
 			{
-				(*boundingVolume.getGameObject(i)).rotateZ(DTOR);
+				(*boundingVolume.getGameObject(i)).rotateZ(DTOR*-1.0);
 			}
 		}
 		break;
