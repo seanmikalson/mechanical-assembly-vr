@@ -204,6 +204,14 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
 		(*boundingVolume.getGameObject(i)).setGrabbed(false);
+
+		// Go through all the objects and attempt to connect which may be successful even though it is incorrect placement
+		for(int j = 0; j < boundingVolume.getNoItems(); j++)
+		{
+			MechanicalObject* obj = (MechanicalObject*)boundingVolume.getGameObject(i);
+			MechanicalObject* target = (MechanicalObject*)boundingVolume.getGameObject(j);
+			(*obj).connectTo(target, 5);
+		}
 	}
 	proxyObjectDiff[0] = 0.0;
 	proxyObjectDiff[1] = 0.0;
