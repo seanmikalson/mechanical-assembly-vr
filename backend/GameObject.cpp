@@ -9,12 +9,16 @@ GameObject::GameObject()
 	physicsData = PhysicsData();
 	visualData = List<VisualData>();
 	forces = List<Vertex>();
+	grabbed=false;
+	touched=false;
 }
 GameObject::GameObject(const GameObject& rhs)
 {
 	(*this).visualData = rhs.visualData;
 	(*this).physicsData = rhs.physicsData;
 	(*this).forces = rhs.forces;
+	grabbed=false;
+	touched=false;
 }
 GameObject::GameObject(GLfloat posX, GLfloat posY, GLfloat posZ,int visSize, int forceSize)
 {
@@ -22,6 +26,8 @@ GameObject::GameObject(GLfloat posX, GLfloat posY, GLfloat posZ,int visSize, int
 	forces = List<Vertex>(forceSize);
 	physicsData = PhysicsData();
 	physicsData.setPosition(posX,posY,posZ);
+	grabbed=false;
+	touched=false;
 }
 
 //------------------------------------------------
