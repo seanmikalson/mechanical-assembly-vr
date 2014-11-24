@@ -5,9 +5,8 @@ class MechanicalObject EXTENDS GameObject
 {
 	protected:
 		std::string name;
-		List<Vertex> mountingPoints;
-		List<Vertex> mountingNormals;
-		List<Vertex*> correctMounts;
+		List<Vertex> mountingPoints, mountingNormals;
+		List<Vertex*> correctMounts, currentMounts;
 
 	public:
 		//-------------------------------------
@@ -22,14 +21,18 @@ class MechanicalObject EXTENDS GameObject
 		//-------------------------------------
 		Vertex getMountingPointWorldPosition(int index);
 		Vertex getMountingPoint(int index);
+		Vertex* getMountingPointPtr(int index);
 		Vertex getMountingPointNormal(int index);
 		Vertex* getCorrectMount(int index);
+		Vertex* getCurrentMount(int index);
 		std::string getName(){return name;};
+		int getNoMountingPoints(){return mountingPoints.getNoItems();};
 
 		//-------------------------------------
 		// Set Functions
 		//-------------------------------------
 		bool setCorrectMount(int index, Vertex* correct);
+		bool setCurrentMount(int index, Vertex* current);
 		bool setPoint(int index, Vertex point);
 		bool setNormal(int index, Vertex normal);
 		void setName(std::string name){(*this).name = name;};
@@ -39,6 +42,10 @@ class MechanicalObject EXTENDS GameObject
 		//-------------------------------------
 		bool isCorrectMount(int index, Vertex* target);
 		void addMountingPoint(Vertex point, Vertex normal, Vertex* correct);
+		bool isConnectedCorrectly();
+		bool connectTo(MechanicalObject* target, GLfloat threshold);
+		bool isConnected();
+		void disconect();
 
 		//-------------------------------------
 		// Operators

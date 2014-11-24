@@ -8,6 +8,10 @@ MechanicalObject::MechanicalObject() : GameObject()
 	mountingPoints = List<Vertex>();
 	mountingNormals = List<Vertex>();
 	correctMounts = List<Vertex*>();
+	currentMounts = List<Vertex*>();
+	for(int i = 0; i < 10; i++)
+		currentMounts.addItem(nullptr);
+
 	name = "";
 }
 MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noPoints) 
@@ -16,13 +20,21 @@ MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,in
 	mountingPoints = List<Vertex>(noPoints);
 	mountingNormals = List<Vertex>(noPoints);
 	correctMounts = List<Vertex*>(noPoints);
+	currentMounts = List<Vertex*>(noPoints);
+		for(int i = 0; i < noPoints; i++)
+		currentMounts.addItem(nullptr);
 	name = "";
 }
-MechanicalObject::MechanicalObject(const MechanicalObject& rhs) : GameObject(rhs)
+MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 {
+	(*this).physicsData = rhs.physicsData;
+	(*this).visualData = rhs.visualData;
+	(*this).forces = rhs.forces;
+
 	(*this).mountingPoints = rhs.mountingPoints;
 	(*this).mountingNormals = rhs.mountingNormals;
 	(*this).correctMounts = rhs.correctMounts;
+	(*this).currentMounts = rhs.currentMounts;
 	(*this).name = rhs.name;
 }
 
@@ -57,6 +69,20 @@ Vertex* MechanicalObject::getCorrectMount(int index)
 
 	return nullptr;
 }
+Vertex* MechanicalObject::getCurrentMount(int index)
+{
+	if(index < currentMounts.getNoItems() && index >= 0)
+		return currentMounts[index];
+
+	return nullptr;
+}
+Vertex* MechanicalObject::getMountingPointPtr(int index)
+{
+	if(index < mountingPoints.getNoItems() && index >= 0)
+		return &mountingPoints[index];
+
+		return nullptr;
+}
 
 //-------------------------------------
 // Set Functions
@@ -88,6 +114,15 @@ bool MechanicalObject::setNormal(int index, Vertex normal)
 	}
 	return false;
 }
+bool MechanicalObject::setCurrentMount(int index, Vertex* current)
+{
+	if(index < currentMounts.getNoItems() && index >= 0)
+	{
+		currentMounts[index] = current;
+		return true;
+	}
+	return false;
+}
 
 //-------------------------------------
 // Class Functions
@@ -107,6 +142,78 @@ void MechanicalObject::addMountingPoint(Vertex point, Vertex normal, Vertex* cor
 	mountingNormals.addItem(normal);	
 	correctMounts.addItem(correct);
 }
+bool MechanicalObject::isConnectedCorrectly()
+{
+	#define NUMBR_OF_CONNECTED_POINTS_INCORRECT currentMounts.getNoItems() != correctMounts.getNoItems()
+	#define NO_CONNECTED_POINTS currentMounts.getNoItems() == 0
+
+	if( NUMBR_OF_CONNECTED_POINTS_INCORRECT || NO_CONNECTED_POINTS )
+		return false;
+	
+	for(int i = 0; i < currentMounts.getNoItems(); i++)
+	{
+		if(currentMounts[i] != nullptr && currentMounts[i] != correctMounts[i])
+			return false;
+	}
+	
+	return true;
+}
+bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
+{	
+	#define ALL_MOUNTING_POINTS_IN_THIS_OBJECT int i = 0; i < noItems ; i++
+	#define ALL_MOUNTING_POINTS_IN_TARGET int b = 0; b < (*target).getNoMountingPoints(); b++
+	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && (*target).getCurrentMount(minIndex) == nullptr
+
+	int noItems = mountingPoints.getNoItems();
+	bool connected = false;
+	
+	for( ALL_MOUNTING_POINTS_IN_THIS_OBJECT )
+	{
+		List<GLfloat> distances = List<GLfloat>(noItems);
+
+		//Find closest mounting point on target object
+		for( ALL_MOUNTING_POINTS_IN_TARGET )
+		{
+			GLfloat distance = (mountingPoints[i] - (*target).getMountingPoint(b)).length();
+
+			if(distance < 0)
+				distance *= -1.0f;
+
+			distances.addItem(distance);
+		}
+
+		int minIndex = distances.minIndex();
+
+		if( CLOSE_ENOUGH_TO_VACANT_TARGET_POINT )
+		{
+			//Setup Connection on this object and target Object
+			currentMounts[i] = (*target).getMountingPointPtr(minIndex);
+			(*target).setCurrentMount(minIndex,&mountingPoints[i]);
+			connected = true;
+		}
+
+	}
+
+	// TODO Orient Object
+	
+	// TODO Translate Object
+	return connected;
+}
+bool MechanicalObject::isConnected()
+{
+	for(int i = 0; i < correctMounts.getNoItems(); i++)
+	{
+		if(correctMounts[i] != nullptr)
+			return true;
+	}
+
+	return false;
+}
+void MechanicalObject::disconect()
+{
+	for(int i = 0; i < correctMounts.getNoItems(); i++)
+		correctMounts[i] = nullptr;
+}
 
 //-------------------------------------
 // Operators
@@ -123,7 +230,10 @@ MechanicalObject& MechanicalObject::operator=(const MechanicalObject& rhs)
 	(*this).mountingPoints = rhs.mountingPoints;
 	(*this).mountingNormals = rhs.mountingNormals;
 	(*this).correctMounts = rhs.correctMounts;
+	(*this).currentMounts = rhs.currentMounts;
 	(*this).name = rhs.name;
+
+
 
 	return *this;
 }

@@ -24,11 +24,23 @@ class Square EXTENDS GameObject{
 		Square(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
 		void setupPhysData(GLfloat Scale);
 };
-class Cube : public GameObject{
+class Cube : public MechanicalObject{
 
 	public:
 		 Cube(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
 		 void setupPhysData(Vertex* Scale);
+};
+
+class Cylinder EXTENDS GameObject
+{
+	public:
+		Cylinder(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat dispz,Material* TriColor);
+};
+
+class Marker EXTENDS GameObject
+{
+	public:
+		Marker(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat dispz,Material* TriColor);
 };
 /*
 class SquarePyramid EXTENDS GameObject {
@@ -42,11 +54,7 @@ class Circle EXTENDS GameObject
 		Circle(int sides, GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* TriColor);
 };
 
-class Cylinder EXTENDS GameObject
-{
-	public:
-		Cylinder(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat dispz,Material* TriColor);
-};
+
 
 class Sphere EXTENDS GameObject
 {

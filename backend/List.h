@@ -39,6 +39,10 @@ class List{
 		void increaseSize(int amount);
 		bool full(){return noItems >= maxItems;};
 		bool removeItem(int index);
+		cType* min();
+		cType* max();
+		int minIndex();
+		int maxIndex();
 
 		List<cType>& operator=(const List& rhs);
 		cType& const operator[](int index);
@@ -171,6 +175,66 @@ void List<cType>::resetList(int maxItems)
 	(*this).maxItems = maxItems;
 
 	data = new cType[maxItems];
+}
+template<class cType> 
+cType* List<cType>::min()
+{
+	if(noItems < 1)
+		return nullptr;
+
+	cType* temp = &data[0];
+	for(int i = 1; i < noItems; i++)
+	{
+		if( *temp > data[i])
+			temp = &data[i];
+	}
+
+	return temp;
+}
+template<class cType> 
+cType* List<cType>::max()
+{
+	if(noItems < 1)
+		return nullptr;
+
+	cType* temp = &data[0];
+	for(int i = 1; i < noItems; i++)
+	{
+		if( *temp < data[i])
+			temp = &data[i];
+	}
+
+	return temp;
+}
+template<class cType>
+int List<cType>::minIndex()
+{
+	if(noItems < 1)
+		return -1;
+
+	int temp = 0;
+	for(int i = 1; i < noItems; i++)
+	{
+		if( data[temp] > data[i])
+			temp = i;
+	}
+
+	return temp;
+}
+template<class cType>
+int List<cType>::maxIndex()
+{
+	if(noItems < 1)
+		return -1;
+
+	int temp = 0;
+	for(int i = 1; i < noItems; i++)
+	{
+		if( data[temp] < data[i])
+			temp = i;
+	}
+
+	return temp;
 }
 
 //---------------------------------------------------

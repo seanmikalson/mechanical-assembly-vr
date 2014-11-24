@@ -1,7 +1,7 @@
 #include "Primitives.h"
 #include <math.h>
 
-#define VIS_VERTEX (*visualData.getItem(0)).getVertex
+#define VIS_VERTEX visualData[0].getVertex
 #define NORMAL (*visualData.getItem(0)).getNormal
 #define SET_VIS_VERTEX *(*visualData.getItem(0)).getVertex
 #define ADD_TRIANGLE (*visualData.getItem(0)).addVisualTriangle
@@ -306,6 +306,8 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 	 GLfloat PointFive = 0.5f * Scale;
 	 GLfloat NegPointFive = -0.5f * Scale;
 
+	 mountingPoints.addItem(Vertex(PointFive,0.0f, Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
 	 //Setup Verticies
 	 ADD_VERTEX(NegPointFive, 0.0f, PointFive);
 	 ADD_VERTEX(PointFive, 0.0f, PointFive);
@@ -388,6 +390,19 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 			(*(*this).getVisualData(i + 4)).rotateZ(45.0f * DEGREES_TO_RAD);
 			(*(*this).getVisualData(i + 4)).adjustPosition(1.25f * -Scale,0.0f,Scale * -i);	
 		}
+		GLfloat** rotMatrix = new GLfloat*[3];
+		for(int i = 0; i < 3 ; i++)
+			rotMatrix[i] = new GLfloat[3];
+
+		generateRotateZMatrix(-45.0f * DEGREES_TO_RAD,rotMatrix);
+
+		runRotation(rotMatrix,1, &mountingPoints[0]);
+		runRotation(rotMatrix,1, &mountingNormals[0]);
+
+		for(int i = 0; i < 3; i++)
+			delete rotMatrix[i];
+
+		delete []rotMatrix;
 
 		for(int i = 0;i < 8; i++)
 			(*(*this).getVisualData(i)).adjustPosition(0.0f,0.0f,1.5* Scale);
@@ -471,9 +486,7 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 		(*(*visualData.getItem(12)).getNormal(0)).setX(-(*(*visualData.getItem(12)).getNormal(0)).getX());
 
 		for(int i = 0; i < 4; i++)
-			(*(*visualData.getItem(12)).getVertex(i)).setX(-(*(*visualData.getItem(12)).getVertex(i)).getX());
-
-		
+			(*(*visualData.getItem(12)).getVertex(i)).setX(-(*(*visualData.getItem(12)).getVertex(i)).getX());	
 }
 Square::Square(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : GameObject(dispx,dispy,dispz,1,10)
  {
@@ -512,7 +525,7 @@ void Square::setupPhysData(GLfloat Scale)
 	 HULL_ZERO.addTriangle(0,1,2);
 	 HULL_ZERO.addTriangle(0,2,3);
 }
- Cube::Cube(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : GameObject(dispx,dispy,dispz,1,10)
+Cube::Cube(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),1,10,2)
  {
 	 addVisualData(0.0f,0.0f,0.0f,8,6,12,1);
 	 (*visualData.getItem(0)).addMaterial(*material);
@@ -520,6 +533,7 @@ void Square::setupPhysData(GLfloat Scale)
 	 //----------------------------------------------
 	 //    Setup Scaling For Each Axis
 	 //----------------------------------------------
+	 
 	 GLfloat PointFiveX = 0.5f * SCALE_X;
 	 GLfloat NegPointFiveX = -0.5f * SCALE_X;
 
@@ -529,6 +543,7 @@ void Square::setupPhysData(GLfloat Scale)
 	 GLfloat PointFiveZ = 0.5f * SCALE_Z;
 	 GLfloat NegPointFiveZ = -0.5f * SCALE_Z;
 
+	 addMountingPoint(Vertex(0.0f,PointFiveY,0.0f),Vertex(0.0f,1.0f,0.0f),nullptr);
 	 //----------------------------------------------
 	 //    Setup Verticies
 	 //----------------------------------------------
@@ -592,7 +607,7 @@ void Square::setupPhysData(GLfloat Scale)
 	  ADD_TRIANGLE(4,5,0,5,5,5);
 	  (*visualData.getItem(0)).setMaterialsForTriangle(11,0,0,0);
  }
- void Cube::setupPhysData(Vertex* Scale)
+void Cube::setupPhysData(Vertex* Scale)
  {
 	 physicsData.resetPhysHulls(1);
 	 physicsData.addPhysicsHull(TriangleMesh);
@@ -652,8 +667,174 @@ void Square::setupPhysData(GLfloat Scale)
 	  HULL_ZERO.addTriangle(5,1,0);
 	  HULL_ZERO.addTriangle(4,5,0);
  }
- 
- /*
+Cylinder::Cylinder(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat dispz,Material* TriColor) : GameObject(dispx,dispy,dispz,1,10)
+{	  
+	//    Check that sides in range and an even number
+	sides = checkSides(sides);
+
+	addVisualData(0.0f,0.0f,0.0f,2 + (2 * sides),2 + sides,4 * sides,1);
+	visualData[0].addMaterial(*TriColor);
+	 //----------------------------------------------
+	 //    Setup For Scaling
+	 //----------------------------------------------
+     GLfloat PointFiveX = 0.5f * SCALE_X;
+	 GLfloat PointFiveY = 0.5f * SCALE_Y;
+	 GLfloat NegPointFiveY = -0.5f * SCALE_Y;
+	 GLfloat PointFiveZ = 0.5f * SCALE_Z;
+	 
+	 //----------------------------------------------
+	 //    Setup Verticies
+	 //----------------------------------------------
+	 GLfloat angle = 0.0f;
+	 int next = sides + 1;
+	 GLfloat increment = 360.0f / (float) sides;
+	 
+
+	 //setup centres and normals for top and bottom 
+	 ADD_VERTEX(0.0f,PointFiveY,0.0f);
+	 ADD_NORMAL(0.0f,1.0f,0.0f);
+	 visualData[0].setNoVerticies(2 + 2 * sides);
+	 SET_VIS_VERTEX(next) = Vertex(0.0f,NegPointFiveY,0.0f);
+	 ADD_NORMAL(0.0f,-1.0f,0.0f);
+	 next++;
+	 
+	 GLfloat x = 0.0f;
+	 GLfloat z = 0.0f;
+	 //setup outer verticies and normals;
+	 for(int i = 1; i <= sides; i++)
+	 {  
+		 x =  PointFiveX * cos(angle * DEGREES_TO_RAD);
+		 z =  PointFiveZ * sin(angle * DEGREES_TO_RAD);
+		  SET_VIS_VERTEX(i) = Vertex(x, PointFiveY, z);
+		 ADD_NORMAL(x, 0.0f,z);
+		 SET_VIS_VERTEX(next) = Vertex(x, NegPointFiveY, z);
+		 angle += increment;
+		 next++;
+	 }
+	 next = 2;
+
+	 //----------------------------------------------
+	 //    Create Triangles For Top and Bottom
+	 //----------------------------------------------
+	 for(int i = 1; i <= sides; i++)
+	 {
+		 if(next == sides + 1)
+			 next = 1;
+		 
+		 ADD_TRIANGLE(0,next,i,0,0,0);
+		 visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+	     next++;
+	 }
+	 next = (2*sides);
+
+	 for(int i = (2*sides) + 1; i > (sides + 1); i--)
+	 {
+		  if(next == sides + 1)
+			 next = (2* sides + 1);
+		 
+		ADD_TRIANGLE(sides + 1,next,i,1,1,1);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+	     next--;
+	 }
+	 
+	 //----------------------------------------------
+	 //    Create Normals For Sides And Add Triangles
+	 //----------------------------------------------
+	 next = sides + 2;
+	 int count = 2;
+	 for( int i = 1; i < sides; i++)
+	 {
+		 ADD_TRIANGLE(i,i+1,next,count,count + 1,count);
+		 visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+		 ADD_TRIANGLE(next,i+1,next+1,count,count + 1,count + 1);
+		 visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+		 next++;
+		 count ++;
+	 } 
+	    ADD_TRIANGLE(sides,1,(2*sides) + 1,count,2,count);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+	  	ADD_TRIANGLE((2*sides)+1,1,sides+ 2,count,2,2);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,0,0);
+
+ }
+Marker::Marker(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat dispz,Material* TriColor) : GameObject(dispx,dispy,dispz,1,10)
+{	  
+	//    Check that sides in range and an even number
+	sides = checkSides(sides);
+	GLfloat not[4] = {0.0f,0.0f,0.0f,0.0f};
+	GLfloat diff[4] = {1.0f,1.0f,1.0f,0.1f};
+	diff[0] = (*TriColor).getDiffuse()[0];
+	diff[1] = (*TriColor).getDiffuse()[1];
+	diff[2] = (*TriColor).getDiffuse()[2];
+	diff[3] = 0.0f;
+	Material nothing = Material(diff,diff,not,0.0f);
+	diff[3] = 1.0f;
+	Material material = Material(diff,diff,not,0.0f);
+
+	addVisualData(0.0f,0.0f,0.0f,2 + (2 * sides),2 + sides,2 * sides,2);
+	visualData[0].addMaterial(material);
+	visualData[0].addMaterial(nothing);
+	 //----------------------------------------------
+	 //    Setup For Scaling
+	 //----------------------------------------------
+     GLfloat PointFiveX = 0.5f * SCALE_X;
+	 GLfloat PointFiveY = 0.5f * SCALE_Y;
+	 GLfloat NegPointFiveY = -0.5f * SCALE_Y;
+	 GLfloat PointFiveZ = 0.5f * SCALE_Z;
+	 
+	 //----------------------------------------------
+	 //    Setup Verticies
+	 //----------------------------------------------
+	 GLfloat angle = 0.0f;
+	 int next = sides + 1;
+	 GLfloat increment = 360.0f / (float) sides;
+	 
+
+	 //setup centres and normals for top and bottom 
+	 ADD_VERTEX(0.0f,PointFiveY,0.0f);
+	 ADD_NORMAL(0.0f,1.0f,0.0f);
+	 visualData[0].setNoVerticies(2 + 2 * sides);
+	 SET_VIS_VERTEX(next) = Vertex(0.0f,NegPointFiveY,0.0f);
+	 ADD_NORMAL(0.0f,-1.0f,0.0f);
+	 next++;
+	 
+	 GLfloat x = 0.0f;
+	 GLfloat z = 0.0f;
+	 //setup outer verticies and normals;
+	 for(int i = 1; i <= sides; i++)
+	 {  
+		 x =  PointFiveX * cos(angle * DEGREES_TO_RAD);
+		 z =  PointFiveZ * sin(angle * DEGREES_TO_RAD);
+		  SET_VIS_VERTEX(i) = Vertex(x, PointFiveY, z);
+		 ADD_NORMAL(x, 0.0f,z);
+		 SET_VIS_VERTEX(next) = Vertex(x, NegPointFiveY, z);
+		 angle += increment;
+		 next++;
+	 }
+	 next = 2;
+
+	 
+	 //----------------------------------------------
+	 //    Create Normals For Sides And Add Triangles
+	 //----------------------------------------------
+	 next = sides + 2;
+	 int count = 2;
+	 for( int i = 1; i < sides; i++)
+	 {
+		 ADD_TRIANGLE(i,i+1,next,count,count + 1,count);
+		 visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 1,1,0);
+		 ADD_TRIANGLE(next,i+1,next+1,count,count + 1,count + 1);
+		 visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,1,0);
+		 next++;
+		 count ++;
+	 } 
+	    ADD_TRIANGLE(sides,1,(2*sides) + 1,count,2,count);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 1,1,0);
+	  	ADD_TRIANGLE((2*sides)+1,1,sides+ 2,count,2,2);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,1,0);
+
+ }
+/*
  SquarePyramid::SquarePyramid(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* TriColor) : GameObject(dispx,dispy,dispz)
  {
 	 (*visualData).resetVisualMeshSize(6);
