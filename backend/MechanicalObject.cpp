@@ -1,4 +1,5 @@
 #include "MechanicalObject.h"
+#define ALL_VISUAL_DATA_ENTRIES int i = 0; i < noVisData; i++
 
 //-------------------------------------
 // Constructors 
@@ -164,6 +165,7 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	#define ALL_MOUNTING_POINTS_IN_TARGET int b = 0; b < (*target).getNoMountingPoints(); b++
 	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && (*target).getCurrentMount(minIndex) == nullptr
 
+
 	int noItems = mountingPoints.getNoItems();
 	bool connected = false;
 	
@@ -174,7 +176,9 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		//Find closest mounting point on target object
 		for( ALL_MOUNTING_POINTS_IN_TARGET )
 		{
-			GLfloat distance = (mountingPoints[i] - (*target).getMountingPoint(b)).length();
+			
+			GLfloat distance = ((mountingPoints[i] + getPosition())
+				- ((*target).getMountingPoint(b) + (*target).getPosition() )).length();
 
 			if(distance < 0)
 				distance *= -1.0f;
@@ -215,6 +219,111 @@ void MechanicalObject::disconect()
 		correctMounts[i] = nullptr;
 }
 
+void MechanicalObject::rotateX(GLfloat rad)
+{
+	GLfloat** rotMatrix = new GLfloat*[3];
+	for(int i = 0; i < 3 ; i++)
+		rotMatrix[i] = new GLfloat[3];
+
+	generateRotateXMatrix(rad,rotMatrix);
+	physicsData.rotateX(rad);
+	int noVisData = visualData.getNoItems();
+	//all vis data should have same location at 0.0,0.0,0.0
+	for(ALL_VISUAL_DATA_ENTRIES)
+	{
+		(*visualData.getItem(i)).rotateX(rad);
+		Vertex temp = (*visualData.getItem(i)).getPosition();
+		runRotation(rotMatrix,1,&temp);
+		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
+	}
+
+	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
+	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+
+	for(int i = 0; i < 3; i++)
+		delete rotMatrix[i];
+
+	delete []rotMatrix;
+}
+void MechanicalObject::rotateY(GLfloat rad)
+{
+	GLfloat** rotMatrix = new GLfloat*[3];
+	for(int i = 0; i < 3 ; i++)
+		rotMatrix[i] = new GLfloat[3];
+
+	generateRotateYMatrix(rad,rotMatrix);
+	physicsData.rotateY(rad);
+	int noVisData = visualData.getNoItems();
+	//all vis data should have same location at 0.0,0.0,0.0
+	for(ALL_VISUAL_DATA_ENTRIES)
+	{
+		(*visualData.getItem(i)).rotateY(rad);
+		Vertex temp = (*visualData.getItem(i)).getPosition();
+		runRotation(rotMatrix,1,&temp);
+		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
+	}
+
+	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
+	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+
+	for(int i = 0; i < 3; i++)
+		delete rotMatrix[i];
+
+	delete []rotMatrix;
+}
+void MechanicalObject::rotateZ(GLfloat rad)
+{
+	GLfloat** rotMatrix = new GLfloat*[3];
+	for(int i = 0; i < 3 ; i++)
+		rotMatrix[i] = new GLfloat[3];
+
+	generateRotateZMatrix(rad,rotMatrix);
+	physicsData.rotateZ(rad);
+	int noVisData = visualData.getNoItems();
+	//all vis data should have same location at 0.0,0.0,0.0
+	for(ALL_VISUAL_DATA_ENTRIES)
+	{
+		(*visualData.getItem(i)).rotateZ(rad);
+		Vertex temp = (*visualData.getItem(i)).getPosition();
+		runRotation(rotMatrix,1,&temp);
+		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
+	}
+
+	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
+	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+
+	for(int i = 0; i < 3; i++)
+		delete rotMatrix[i];
+
+	delete []rotMatrix;
+
+}
+void MechanicalObject::rotate(GLfloat rad, Vertex axis)
+{
+	GLfloat** rotMatrix = new GLfloat*[3];
+	for(int i = 0; i < 3 ; i++)
+		rotMatrix[i] = new GLfloat[3];
+
+	physicsData.rotate(rad,axis);
+	generateRotateMatrix(rad,axis,rotMatrix);
+	int noVisData = visualData.getNoItems();
+	//all vis data should have same location at 0.0,0.0,0.0
+	for(ALL_VISUAL_DATA_ENTRIES)
+	{
+		(*visualData.getItem(i)).rotate(rad,axis);
+		Vertex temp = (*visualData.getItem(i)).getPosition();
+		runRotation(rotMatrix,1,&temp);
+		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
+	}
+
+	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
+	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+
+	for(int i = 0; i < 3; i++)
+		delete rotMatrix[i];
+
+	delete []rotMatrix;
+}
 //-------------------------------------
 // Operators
 //-------------------------------------

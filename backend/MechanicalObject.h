@@ -47,6 +47,11 @@ class MechanicalObject EXTENDS GameObject
 		bool isConnected();
 		void disconect();
 
+		void rotateX(GLfloat rad);
+		void rotateY(GLfloat rad);
+		void rotateZ(GLfloat rad);
+		void rotate(GLfloat rad, Vertex axis);
+
 		//-------------------------------------
 		// Operators
 		//-------------------------------------
