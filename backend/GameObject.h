@@ -1,5 +1,8 @@
 #include <glew.h>
 #include "PhysicsData.h"
+enum GameObjectType{
+	NoObjectType,Mechanical
+};
 
 class GameObject
 {
@@ -10,6 +13,7 @@ class GameObject
 		bool touched;
 		bool grabbed;
 		unsigned int shapeId;
+		GameObjectType gameObjectType;
 
 	public: 
 		GameObject();
@@ -36,8 +40,8 @@ class GameObject
 		bool isTouched(){return touched;};
 		bool isGrabbed(){return grabbed;};
 		unsigned int getShapeId(){return shapeId;};
+		GameObjectType getType(){return gameObjectType;};
 
-		
 		//-----------------------------------------
 		// Class Functions
 		//-----------------------------------------

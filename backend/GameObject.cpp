@@ -11,14 +11,7 @@ GameObject::GameObject()
 	forces = List<Vertex>();
 	grabbed=false;
 	touched=false;
-}
-GameObject::GameObject(const GameObject& rhs)
-{
-	(*this).visualData = rhs.visualData;
-	(*this).physicsData = rhs.physicsData;
-	(*this).forces = rhs.forces;
-	grabbed=false;
-	touched=false;
+	gameObjectType = NoObjectType;
 }
 GameObject::GameObject(GLfloat posX, GLfloat posY, GLfloat posZ,int visSize, int forceSize)
 {
@@ -28,6 +21,17 @@ GameObject::GameObject(GLfloat posX, GLfloat posY, GLfloat posZ,int visSize, int
 	physicsData.setPosition(posX,posY,posZ);
 	grabbed=false;
 	touched=false;
+	gameObjectType = NoObjectType;
+}
+GameObject::GameObject(const GameObject& rhs)
+{
+	(*this).visualData = rhs.visualData;
+	(*this).physicsData = rhs.physicsData;
+	(*this).forces = rhs.forces;
+	(*this).grabbed=rhs.grabbed;
+	(*this).touched=rhs.touched;
+	(*this).gameObjectType = rhs.gameObjectType;
+	(*this).shapeId = rhs.shapeId;
 }
 
 //------------------------------------------------
@@ -218,6 +222,10 @@ GameObject& GameObject::operator=(const GameObject& rhs)
 	(*this).physicsData = rhs.physicsData;
 	(*this).visualData = rhs.visualData;
 	(*this).forces = rhs.forces;
+	(*this).gameObjectType = rhs.gameObjectType;
+	(*this).grabbed=rhs.grabbed;
+	(*this).touched=rhs.touched;
+	(*this).shapeId = rhs.shapeId;
 
 	return *this;
 }

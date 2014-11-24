@@ -3,16 +3,27 @@
 class BoundingVolume
 {
 private:
-	List<GameObject> gameObjects;
-	US_INT searchForPotentialCollisions(US_INT index, US_INT* possibleCollisions,GLfloat elapsedTime);
+	List<GameObject*> gameObjects;
 
 public:
+	//---------------------------------
+	// Constructors + Destructors
+	//---------------------------------
 	BoundingVolume();
 	~BoundingVolume();
+	BoundingVolume(const BoundingVolume& rhs);
+
+	//---------------------------------
+	// Specific Class Functions
+	//---------------------------------
 	void draw();
 	void adjustPositions(GLfloat,GLfloat,GLfloat);
-	void animate(GLfloat);
 	GameObject* getGameObject(int index);
 	int getNoItems();
 	GameObject* getGameObjectFromId(unsigned int id);
+
+	//---------------------------------
+	// Operators
+	//---------------------------------
+	BoundingVolume& operator=(const BoundingVolume& rhs);
 };

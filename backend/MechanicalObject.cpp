@@ -14,6 +14,7 @@ MechanicalObject::MechanicalObject() : GameObject()
 		currentMounts.addItem(nullptr);
 
 	name = "";
+	gameObjectType = Mechanical;
 }
 MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noPoints) 
 	: GameObject(nPosition.getX(),nPosition.getY(),nPosition.getZ(),visSize,forceSize)
@@ -25,6 +26,7 @@ MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,in
 		for(int i = 0; i < noPoints; i++)
 		currentMounts.addItem(nullptr);
 	name = "";
+	gameObjectType = Mechanical;
 }
 MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 {
@@ -324,6 +326,7 @@ void MechanicalObject::rotate(GLfloat rad, Vertex axis)
 
 	delete []rotMatrix;
 }
+
 //-------------------------------------
 // Operators
 //-------------------------------------
