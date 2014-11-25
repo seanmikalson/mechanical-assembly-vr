@@ -8,10 +8,17 @@ MechanicalObject::MechanicalObject() : GameObject()
 {
 	mountingPoints = List<Vertex>();
 	mountingNormals = List<Vertex>();
+	mountingNormalPerps = List<Vertex>();
 	correctMounts = List<Vertex*>();
 	currentMounts = List<Vertex*>();
+	currentMountsPerp = List<Vertex*>();
+	currentMountsNormal = List<Vertex*>();
 	for(int i = 0; i < 10; i++)
+	{
 		currentMounts.addItem(nullptr);
+		currentMountsPerp.addItem(nullptr);
+		currentMountsNormal.addItem(nullptr);
+	}
 
 	name = "";
 	gameObjectType = Mechanical;
@@ -21,10 +28,17 @@ MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,in
 {
 	mountingPoints = List<Vertex>(noPoints);
 	mountingNormals = List<Vertex>(noPoints);
+	mountingNormalPerps = List<Vertex>(noPoints);
 	correctMounts = List<Vertex*>(noPoints);
 	currentMounts = List<Vertex*>(noPoints);
-		for(int i = 0; i < noPoints; i++)
+	currentMountsNormal = List<Vertex*>(noPoints);
+	currentMountsPerp = List<Vertex*>(noPoints);
+	for(int i = 0; i < noPoints; i++)
+	{
 		currentMounts.addItem(nullptr);
+		currentMountsNormal.addItem(nullptr);
+		currentMountsPerp.addItem(nullptr);
+	}
 	name = "";
 	gameObjectType = Mechanical;
 }
@@ -36,8 +50,11 @@ MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 
 	(*this).mountingPoints = rhs.mountingPoints;
 	(*this).mountingNormals = rhs.mountingNormals;
+	(*this).mountingNormalPerps = rhs.mountingNormalPerps;
 	(*this).correctMounts = rhs.correctMounts;
 	(*this).currentMounts = rhs.currentMounts;
+	(*this).currentMountsNormal = rhs.currentMountsNormal;
+	(*this).currentMountsPerp = rhs.currentMountsPerp;
 	(*this).name = rhs.name;
 }
 
@@ -58,12 +75,19 @@ Vertex MechanicalObject::getMountingPoint(int index)
 
 		return Vertex();
 }
-Vertex MechanicalObject::getMountingPointNormal(int index)
+Vertex* MechanicalObject::getMountingPointNormalPtr(int index)
 {
-	if(index < mountingPoints.getNoItems() && index >= 0)
-		return mountingNormals[index];
+	if(index < mountingNormals.getNoItems() && index >= 0)
+		return &mountingNormals[index];
 
-	return Vertex();
+	return nullptr;
+}
+Vertex* MechanicalObject::getMountingPointNormalPerpPtr(int index)
+{
+	if(index < mountingNormalPerps.getNoItems() && index >= 0)
+		return &mountingNormalPerps[index];
+
+	return nullptr;
 }
 Vertex* MechanicalObject::getCorrectMount(int index)
 {
@@ -113,6 +137,7 @@ bool MechanicalObject::setNormal(int index, Vertex normal)
 	if(index < mountingNormals.getNoItems() && index >= 0)
 	{
 		mountingNormals[index] = normal;
+		mountingNormalPerps[index] = normal.getPerpendicular();
 		return true;
 	}
 	return false;
@@ -142,7 +167,8 @@ bool MechanicalObject::isCorrectMount(int index, Vertex* target)
 void MechanicalObject::addMountingPoint(Vertex point, Vertex normal, Vertex* correct)
 {
 	mountingPoints.addItem(point);
-	mountingNormals.addItem(normal);	
+	mountingNormals.addItem(normal);
+	mountingNormalPerps.addItem(normal.getPerpendicular());
 	correctMounts.addItem(correct);
 }
 bool MechanicalObject::isConnectedCorrectly()
@@ -164,19 +190,18 @@ bool MechanicalObject::isConnectedCorrectly()
 bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 {	
 	#define ALL_MOUNTING_POINTS_IN_THIS_OBJECT int i = 0; i < noItems ; i++
-	#define ALL_MOUNTING_POINTS_IN_TARGET int b = 0; b < (*target).getNoMountingPoints(); b++
-	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && (*target).getCurrentMount(minIndex) == nullptr
-
+	#define ALL_MOUNTING_POINTS_IN_TARGET int b = 0; b < tgt.getNoMountingPoints(); b++
+	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && tgt.getCurrentMount(minIndex) == nullptr
 
 	int noItems = mountingPoints.getNoItems();
 	bool connected = false;
 	
-	for( ALL_MOUNTING_POINTS_IN_THIS_OBJECT )
+	for( int i = 0; i < noItems ; i++ )
 	{
 		List<GLfloat> distances = List<GLfloat>(noItems);
 
 		//Find closest mounting point on target object
-		for( ALL_MOUNTING_POINTS_IN_TARGET )
+		for( int b = 0; b < (*target).getNoMountingPoints(); b++ )
 		{
 			
 			GLfloat distance = ((mountingPoints[i] + getPosition())
@@ -188,21 +213,67 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 			distances.addItem(distance);
 		}
 
-		int minIndex = distances.minIndex();
+		for(int i = 0; i < distances.getNoItems(); i++)
+		{
+			printf("distance %d: %f\n", i, distances[i]);
+		}
 
-		if( CLOSE_ENOUGH_TO_VACANT_TARGET_POINT )
+		int minIndex = distances.minIndex();
+		if(minIndex < 0) break;
+
+		if( distances[minIndex] <= threshold && (*target).getCurrentMount(minIndex) == nullptr )
 		{
 			//Setup Connection on this object and target Object
 			currentMounts[i] = (*target).getMountingPointPtr(minIndex);
+			currentMountsNormal[i] = (*target).getMountingPointNormalPtr(minIndex);
+			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(minIndex);
 			(*target).setCurrentMount(minIndex,&mountingPoints[i]);
 			connected = true;
+			printf("min distance: %f\n", distances[minIndex]);
 		}
 
 	}
 
-	// TODO Orient Object
-	
-	// TODO Translate Object
+	if(connected)
+	{
+		float angle;
+		Vertex axis;
+
+		Vertex* objectNormal = mountingNormals.getItem(0);
+		Vertex* targetNormal = currentMountsNormal[0];
+		Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
+		printf("object: %f,%f,%f\n", (*objectNormal).getX(), (*objectNormal).getY(), (*objectNormal).getZ());
+		
+		float cosine = (*objectNormal).dotProduct(targetNormalReversed);
+		printf("cosine: %f\n", cosine);
+		angle = acosf(cosine);
+		printf("angle: %f\n", angle);
+
+		axis = (*objectNormal).crossProduct(targetNormalReversed);
+		rotate(angle, axis);
+		printf("axis: %f,%f,%f\n", axis.getX(), axis.getY(), axis.getZ());
+		
+		Vertex* objectNormalPerp = mountingNormalPerps.getItem(0);
+		Vertex* targetNormalPerp = currentMountsPerp[0];
+		Vertex targetPerpReversed = Vertex((*targetNormalPerp).getX(), (*targetNormalPerp).getY(), (*targetNormalPerp).getZ());
+		printf("objectp: %f,%f,%f\n", (*objectNormalPerp).getX(), (*objectNormalPerp).getY(), (*objectNormalPerp).getZ());
+		printf("targetp: %f,%f,%f\n", targetPerpReversed.getX(), targetPerpReversed.getY(), targetPerpReversed.getZ());
+
+		float angle2;
+		float cosine2 = (*objectNormalPerp).dotProduct(targetPerpReversed);
+		if((cosine2 <= 0.9 || cosine2 >= 1.1) && (cosine2 <= -0.9 || cosine2 >= -1.1))
+		{
+			printf("cosine2: %f\n", cosine2);
+			angle2 = acosf(cosine2);
+			printf("angle2: %f\n", angle2);
+
+			Vertex axis2 = (*objectNormalPerp).crossProduct((*targetNormalPerp));
+			printf("axis2: %f,%f,%f\n", axis2.getX(), axis2.getY(), axis2.getZ());
+			rotate(angle2, axis2);
+		}
+
+	}
+
 	return connected;
 }
 bool MechanicalObject::isConnected()
@@ -241,6 +312,7 @@ void MechanicalObject::rotateX(GLfloat rad)
 
 	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
 	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -267,6 +339,7 @@ void MechanicalObject::rotateY(GLfloat rad)
 
 	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
 	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -293,6 +366,7 @@ void MechanicalObject::rotateZ(GLfloat rad)
 
 	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
 	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -320,6 +394,7 @@ void MechanicalObject::rotate(GLfloat rad, Vertex axis)
 
 	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
 	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
+	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -341,8 +416,11 @@ MechanicalObject& MechanicalObject::operator=(const MechanicalObject& rhs)
 
 	(*this).mountingPoints = rhs.mountingPoints;
 	(*this).mountingNormals = rhs.mountingNormals;
+	(*this).mountingNormalPerps = rhs.mountingNormalPerps;
 	(*this).correctMounts = rhs.correctMounts;
 	(*this).currentMounts = rhs.currentMounts;
+	(*this).currentMountsNormal = rhs.currentMountsNormal;
+	(*this).currentMountsPerp = rhs.currentMountsPerp;
 	(*this).name = rhs.name;
 
 

@@ -5,8 +5,8 @@ class MechanicalObject EXTENDS GameObject
 {
 	protected:
 		std::string name;
-		List<Vertex> mountingPoints, mountingNormals;
-		List<Vertex*> correctMounts, currentMounts;
+		List<Vertex> mountingPoints, mountingNormals, mountingNormalPerps;
+		List<Vertex*> correctMounts, currentMounts, currentMountsPerp, currentMountsNormal;
 
 	public:
 		//-------------------------------------
@@ -22,7 +22,8 @@ class MechanicalObject EXTENDS GameObject
 		Vertex getMountingPointWorldPosition(int index);
 		Vertex getMountingPoint(int index);
 		Vertex* getMountingPointPtr(int index);
-		Vertex getMountingPointNormal(int index);
+		Vertex* getMountingPointNormalPtr(int index);
+		Vertex* getMountingPointNormalPerpPtr(int index);
 		Vertex* getCorrectMount(int index);
 		Vertex* getCurrentMount(int index);
 		std::string getName(){return name;};

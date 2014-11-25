@@ -180,3 +180,19 @@ GLfloat Vertex::dotProduct( Vertex rhs)
 {
 	return (x * rhs.getX()) + (y *rhs.getY()) + (z * rhs.getZ());
 }
+
+Vertex Vertex::getPerpendicular()
+{
+	Vertex c;
+	if(y != 0.0 || z != 0.0)
+	{
+		c = Vertex(1.0, 0.0, 0.0);
+	}
+	else
+	{
+		c = Vertex(0.0, 1.0, 0.0);
+	}
+	Vertex result = (*this).crossProduct(c);
+	result.normalize();
+	return result;
+}

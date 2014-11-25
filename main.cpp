@@ -200,10 +200,22 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
-	printf("button 1 released %d\n",object);
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
-		(*boundingVolume.getGameObject(i)).setGrabbed(false);
+		if((*boundingVolume.getGameObject(i)).isGrabbed())
+		{
+			(*boundingVolume.getGameObject(i)).setGrabbed(false);
+			// Go through all the objects and attempt to connect which may be successful even though it is incorrect placement 
+  			for(int j = 0; j < boundingVolume.getNoItems(); j++) 
+  			{
+  				MechanicalObject* obj = (MechanicalObject*)boundingVolume.getGameObject(i);
+ 				MechanicalObject* target = (MechanicalObject*)boundingVolume.getGameObject(j);
+				if(i!=j)
+				{
+					if((*obj).connectTo(target,5.0)) break;
+				}
+			}
+		}
 	}
 	proxyObjectDiff[0] = 0.0;
 	proxyObjectDiff[1] = 0.0;

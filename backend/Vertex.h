@@ -36,6 +36,7 @@ class Vertex{
 		void normalize();
 		GLfloat length();
 		Vertex crossProduct(Vertex);
+		Vertex getPerpendicular();
 		GLfloat dotProduct(Vertex rhs);
 		void reflect(Vertex normal);
 	
