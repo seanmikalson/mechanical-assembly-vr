@@ -58,9 +58,9 @@ WorkShop::WorkShop(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, L
 
 	 //Roof
 	 visualData[0].addNormal(0.0f,-1.0f,0.0f);
-	 visualData[0].addVisualTriangle(4,5,6,1,1,1);
+	 visualData[0].addVisualTriangle(4,6,5,1,1,1);
 	 visualData[0].setMaterialsForTriangle(2,1,1,1);
-	 visualData[0].addVisualTriangle(4,6,7,1,1,1);
+	 visualData[0].addVisualTriangle(4,7,6,1,1,1);
 	 visualData[0].setMaterialsForTriangle(3,1,1,1);
 
 	 //walls
@@ -74,19 +74,49 @@ WorkShop::WorkShop(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, L
 		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1 ,2,2,2);
 	 }
 		visualData[0].addNormal(0.0f,1.0f,0.0f);
-		visualData[0].addVisualTriangle(3, 0, 7,5, 5,5);
+		visualData[0].addVisualTriangle(3, 7, 0,5, 5,5);
 		(*visualData[0].getVisualTriangle(visualData[0].getNoTriangles() - 1)).generateNormal();
 		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,2,2,2);
-		visualData[0].addVisualTriangle(0,4,7,5,5,5);
+		visualData[0].addVisualTriangle(0,7,4,5,5,5);
 		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1 ,2,2,2);
 }
 EngineHead::EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),10,10,10)
 {
+	Scale *= 2.0f;
 	 addVisualData(0.0f,0.0f,0.0f,40,40,40,1);
 	 (*visualData.getItem(0)).addMaterial(*material);
 
 	 GLfloat PointFive = 0.5f * Scale;
 	 GLfloat NegPointFive = -0.5f * Scale;
+	  mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, 0.0f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, 0.0f));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
 
 	 visualData[0].addVertex(0.5f *NegPointFive, NegPointFive / 4.0f, 2 * PointFive);
 	 visualData[0].addVertex(0.5f *PointFive, NegPointFive / 4.0f, 2 * PointFive);
@@ -284,7 +314,17 @@ EngineHead::EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat disp
 			delete []rotMatrix;
 			*/
 }
-EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),13,10,10)
+void EngineHead::setupCorrectMountingPoints(EngineBlock* engineBlock, int side)
+{
+	//Left side = 0
+	side *= 10;
+	for(int i = side; i < side + 10; i++)
+	{
+		(*engineBlock).setCorrectMount(i, mountingPoints.getItem(i));
+		(*this).setCorrectMount(i,(*engineBlock).getMountingPointPtr(i));
+	}
+}
+EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),14,10,10)
 {
 	 int cylinderSize = 32;
 	 for(int i = 0; i < 8; i++)
@@ -296,19 +336,81 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 	 addVisualData(0.0f,0.0f,0.0f,4,1,2,1);
 	 addVisualData(0.0f,0.0f,0.0f,4,1,2,1);
 	 addVisualData(0.0f,0.0f,0.0f,4,1,2,1);
+	  addVisualData(0.0f,0.0f,0.0f,4,1,2,1);
 	 (*visualData.getItem(0)).addMaterial(*material);
 	 (*visualData.getItem(8)).addMaterial(*material);
 	 (*visualData.getItem(10)).addMaterial(*material);
 	 (*visualData.getItem(11)).addMaterial(*material);
+	  (*visualData.getItem(13)).addMaterial(*material);
 	 
 	
 
 	 GLfloat PointFive = 0.5f * Scale;
 	 GLfloat NegPointFive = -0.5f * Scale;
 
-	 mountingPoints.addItem(Vertex(PointFive,0.0f, Scale));
+	//--------------------------------------------------------------------------
+	// Create Mounting Points
+	//--------------------------------------------------------------------------
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, Scale * 0.9f));
 	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
-	 //Setup Verticies
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, Scale * 0.9f));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, 0.0f));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, 0.0f));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -2 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -2 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -2.9 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -2.9 *Scale));
+	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+
+	 GLfloat** rotMatrix = new GLfloat*[3];
+		for(int i = 0; i < 3 ; i++)
+			rotMatrix[i] = new GLfloat[3];
+
+		generateRotateZMatrix(-45.0f * DEGREES_TO_RAD,rotMatrix);
+		for(int i = 0; i< 10; i++)
+		{
+			runRotation(rotMatrix,1, &mountingPoints[i]);
+			runRotation(rotMatrix,1, &mountingNormals[i]);
+			mountingPoints[i] += Vertex(1.25f * Scale,0.0f,Scale);
+		}
+		for(int i = 0; i < 3; i++)
+			delete rotMatrix[i];
+
+		delete []rotMatrix;
+
+		for(int i = 0; i < 10; i++)
+		{
+			Vertex tmoun = mountingPoints[i];
+			Vertex tnorm = mountingNormals[i];
+			tmoun *= Vertex(-1.0f,1.0f,1.0f);
+			tnorm *= Vertex(-1.0f,1.0f,1.0f);
+
+			mountingPoints.addItem(tmoun);
+			mountingNormals.addItem(tnorm);
+		}
+	 
+	//--------------------------------------------------------------------------
+	// Create Cylinder Sleeves
+	//--------------------------------------------------------------------------
 	 ADD_VERTEX(NegPointFive, 0.0f, PointFive);
 	 ADD_VERTEX(PointFive, 0.0f, PointFive);
 	 ADD_VERTEX(PointFive, 0.0f, NegPointFive);
@@ -366,14 +468,14 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 	  }
 	 for(int i = 0; i < cylinderSize - 1; i++)
 	 {
-		 ADD_TRIANGLE(4 + i, 5+ i, 4 + cylinderSize + i,i+1,i+2,i+1);
+		 ADD_TRIANGLE(4 + i, 4 + cylinderSize + i, 5+ i,i+1,i+1,i+2);
 		 (*visualData.getItem(0)).setMaterialsForTriangle(cylinderSize + 4 + (2*i),0,0,0);
 
-		 ADD_TRIANGLE(4 + cylinderSize + i, 5+ i,5 + cylinderSize + i ,i+1,i+2,i+2);
+		 ADD_TRIANGLE(4 + cylinderSize + i,5 + cylinderSize + i , 5+ i,i+1,i+2,i+2);
 		 (*visualData.getItem(0)).setMaterialsForTriangle(cylinderSize + 5 + (2*i),0,0,0);
 	 }
 
-		ADD_TRIANGLE(3 + cylinderSize, 4,(2*cylinderSize) + 3,cylinderSize,1,cylinderSize);
+		ADD_TRIANGLE(3 + cylinderSize,(2*cylinderSize) + 3, 4,cylinderSize,cylinderSize,1);
 		 (*visualData.getItem(0)).setMaterialsForTriangle((3*cylinderSize) + 2,0,0,0);
 
 		ADD_TRIANGLE((2*cylinderSize) + 3,cylinderSize + 4,4 ,cylinderSize,1,1);
@@ -390,20 +492,11 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 			(*(*this).getVisualData(i + 4)).rotateZ(45.0f * DEGREES_TO_RAD);
 			(*(*this).getVisualData(i + 4)).adjustPosition(1.25f * -Scale,0.0f,Scale * -i);	
 		}
-		GLfloat** rotMatrix = new GLfloat*[3];
-		for(int i = 0; i < 3 ; i++)
-			rotMatrix[i] = new GLfloat[3];
+		
 
-		generateRotateZMatrix(-45.0f * DEGREES_TO_RAD,rotMatrix);
-
-		runRotation(rotMatrix,1, &mountingPoints[0]);
-		runRotation(rotMatrix,1, &mountingNormals[0]);
-
-		for(int i = 0; i < 3; i++)
-			delete rotMatrix[i];
-
-		delete []rotMatrix;
-
+		//--------------------------------------------------------------------------
+		// Create Front Of Engine
+		//--------------------------------------------------------------------------
 		for(int i = 0;i < 8; i++)
 			(*(*this).getVisualData(i)).adjustPosition(0.0f,0.0f,1.5* Scale);
 		
@@ -442,15 +535,19 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 		(*visualData.getItem(8)).addVisualTriangle(2,5,3,0,0,0);
 		(*visualData.getItem(8)).setMaterialsForTriangle(3,0,0,0);
 
-		(*visualData.getItem(8)).addVisualTriangle(2,6,4,0,0,0);
+		(*visualData.getItem(8)).addVisualTriangle(2,4,6,0,0,0);
 		(*visualData.getItem(8)).setMaterialsForTriangle(4,0,0,0);
 		
+		//--------------------------------------------------------------------------
+		// Derive Back Of Engine From Front
+		//--------------------------------------------------------------------------
 		(*visualData.getItem(9)) = (*visualData.getItem(8));
-		(*(*visualData.getItem(9)).getNormal(0)).setZ(-1.0f);
+		(*visualData.getItem(9)).rotateY(180.0f * DEGREES_TO_RAD);
 
-		for(int i = 0; i < 7; i++)
-			(*(*visualData.getItem(9)).getVertex(i)).setZ(-1.0f * (*(*visualData.getItem(9)).getVertex(i)).getZ());
 
+		//--------------------------------------------------------------------------
+		// Setup Top
+		//--------------------------------------------------------------------------
 		(*visualData.getItem(10)).addNormal(0.0f,1.0f,0.0f);
 		temp = *(*visualData.getItem(8)).getVertex(0);
 		(*visualData.getItem(10)).addVertex(temp.getX(),temp.getY(),temp.getZ());
@@ -466,6 +563,9 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 		(*visualData.getItem(10)).addVisualTriangle(2,1,3,0,0,0);
 		(*visualData.getItem(10)).setMaterialsForTriangle(1,0,0,0);
 
+		//--------------------------------------------------------------------------
+		// Setup Lower Sides
+		//--------------------------------------------------------------------------
 		temp = *(*visualData.getItem(8)).getVertex(3);
 		(*visualData.getItem(11)).addVertex(temp.getX(),temp.getY(),temp.getZ());
 		(*visualData.getItem(11)).addVertex(temp.getX(),temp.getY(),-temp.getZ());
@@ -481,12 +581,26 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 
 		(*visualData.getItem(11)).addVisualTriangle(2,3,1,0,0,0);
 		(*visualData.getItem(11)).setMaterialsForTriangle(1,0,0,0);
+
 		(*visualData.getItem(12)) = (*visualData.getItem(11));
+		(*visualData.getItem(12)).rotateY(180.0f * DEGREES_TO_RAD);
 
-		(*(*visualData.getItem(12)).getNormal(0)).setX(-(*(*visualData.getItem(12)).getNormal(0)).getX());
+		//--------------------------------------------------------------------------
+		// Setup Bottom
+		//--------------------------------------------------------------------------
+		temp = *(*visualData.getItem(8)).getVertex(5);
+		(*visualData.getItem(13)).addVertex(temp.getX(),temp.getY(),temp.getZ());
+		(*visualData.getItem(13)).addVertex(temp.getX(),temp.getY(),-temp.getZ());
 
-		for(int i = 0; i < 4; i++)
-			(*(*visualData.getItem(12)).getVertex(i)).setX(-(*(*visualData.getItem(12)).getVertex(i)).getX());	
+		(*visualData.getItem(13)).addVertex(-temp.getX(),temp.getY(),-temp.getZ());
+		(*visualData.getItem(13)).addVertex(-temp.getX(),temp.getY(),temp.getZ());
+		(*visualData.getItem(13)).addNormal(0.0f,-1.0f,0.0f);
+
+		(*visualData.getItem(13)).addVisualTriangle(0,2,1,0,0,0);
+		(*visualData.getItem(13)).setMaterialsForTriangle(0,0,0,0);
+
+		(*visualData.getItem(13)).addVisualTriangle(0,3,2,0,0,0);
+		(*visualData.getItem(13)).setMaterialsForTriangle(1,0,0,0);
 }
 Square::Square(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : GameObject(dispx,dispy,dispz,1,10)
  {
@@ -778,8 +892,8 @@ Marker::Marker(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat disp
 	 //    Setup For Scaling
 	 //----------------------------------------------
      GLfloat PointFiveX = 0.5f * SCALE_X;
-	 GLfloat PointFiveY = 0.5f * SCALE_Y;
-	 GLfloat NegPointFiveY = -0.5f * SCALE_Y;
+	 GLfloat PointFiveY = SCALE_Y;
+	 GLfloat NegPointFiveY = 0.0f;
 	 GLfloat PointFiveZ = 0.5f * SCALE_Z;
 	 
 	 //----------------------------------------------

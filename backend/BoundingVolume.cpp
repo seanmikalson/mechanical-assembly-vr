@@ -1,6 +1,8 @@
 #include"BoundingVolume.h"
 #define ALL_OBJECTS int i = 0; i < gameObjects.getNoItems(); i++
 #define ALL_OBJECTS_TO_COPY int i = 0; i < rhsObjects.getNoItems(); i++
+GameObject* MechanicalObject::mountingMarker;
+Vertex MechanicalObject::markerNormal;
 
 //---------------------------------------------------------------
 //  Constructors and Destructors
@@ -10,7 +12,7 @@ BoundingVolume::BoundingVolume()
 	GLfloat specular[4] = {1.0f,1.0f,1.0f,0.1f};
 	GLfloat nothing[4] = {0.0f,0.0f,0.0f,0.0f};
 	GLfloat diffPurp[4] = {0.9f,0.0f,0.9f,1.0f};
-	GLfloat ambwht[4] = {1.0f,1.0f,1.0f,1.0f};
+	GLfloat ambwht[4] = {1.0f,1.0f,1.0f,0.5f};
 	GLfloat grnamb[4] = {0.0f,1.0f,0.0f,1.0f};
 	GLfloat grndiff[4] = {0.0f,0.5f,0.0f,1.0f};
 	GLfloat tanamb[4] = {1.0f,1.0f,0.8f,1.0f};
@@ -21,30 +23,35 @@ BoundingVolume::BoundingVolume()
     Material* Green = new  Material(grnamb,grndiff,nothing,30.0f);
     Material* Purple = new Material(diffPurp,diffPurp,specular,30.0f);
     Material* Tan = new Material(tanamb,tanamb,nothing,0.0f);
-    Material* Grey = new Material(greyamb,greyamb,nothing,0.0f);
+    Material* Grey = new Material(greyamb,greyamb,ambwht,130.0f);
 	Material* floor = new Material(greyamb,greyamb,greyamb,10.0f);
 	Material* Red = new Material(redamb,redamb,nothing,.0f);
 	Material* Blue = new Material(blueamb,blueamb,nothing,0.0f);
 	Material* roof = new Material(ambwht,ambwht,nothing,0.0f);
 
-	 gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,5.0f,-10.0f,Blue));
-	 (*gameObjects[0]).rotateZ(180.0f * DEGREES_TO_RAD);
-	 gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,-5.0f,-10.0f,Red));
-	/*
+	//gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,5.0f,-10.0f,Blue));
+	//(*gameObjects[0]).rotateZ(180.0f * DEGREES_TO_RAD);
+   // gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,-5.0f,-10.0f,Red));
 	//setup engine
 	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
-	gameObjects.addItem(new EngineHead(4.0f,13.0f,0.0f,-10.0f,Red));
+	gameObjects.addItem(new EngineHead(2.0f,13.0f,0.0f,-10.0f,Grey));
+	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[1],0);
+	MechanicalObject tempm;
+	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
+	tempm.markerNormal = Vertex(0.0f,1.0f,0.0f);
+	
 	(*gameObjects[1]).rotateZ(-45.0f * DEGREES_TO_RAD);
 
 	Vertex movement = ((*(*(*gameObjects[0]).getVisualData(0)).getVertex(0)) + (*gameObjects[0]).getPosition() + (*(*gameObjects[0]).getVisualData(0)).getPosition()) - 
 		((*(*(*gameObjects[1]).getVisualData(0)).getVertex(0)) + (*gameObjects[1]).getPosition() + (*(*gameObjects[1]).getVisualData(0)).getPosition());
 	
-	(*gameObjects[1]).adjustPosition(1.0f * movement.getX(),1.0f *movement.getY(),0.0f);
-	*/
+	(*gameObjects[1]).adjustPosition(1.0f * movement.getX(),1.0f,0.0f);
+
+	
 	//setup room
 	List<Material> temp = List<Material>();
 	temp.addItem(*floor);
-	temp.addItem(*roof);
+	temp.addItem(*Tan);
 	temp.addItem(*Tan);
 	gameObjects.addItem(new WorkShop(30.0f,0.0f,0.0f,0.0f,temp));
 
@@ -88,6 +95,12 @@ void BoundingVolume::draw()
 {
 	for(ALL_OBJECTS)
 		(*gameObjects[i]).draw();
+
+	for(ALL_OBJECTS)
+	{
+		if((*gameObjects[i]).getType() == Mechanical)
+			(* (MechanicalObject*) gameObjects[i]).drawMountingMarkers();
+	}
 }
 void BoundingVolume::adjustPositions(GLfloat x, GLfloat y, GLfloat z)
 {
