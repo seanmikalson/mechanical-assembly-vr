@@ -88,35 +88,25 @@ EngineHead::EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat disp
 
 	 GLfloat PointFive = 0.5f * Scale;
 	 GLfloat NegPointFive = -0.5f * Scale;
-	  mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, 0.0f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, 0.0f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, 0.0f));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, 0.0f),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	addMountingPoint(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale),Vertex(0.0f,-1.0f,0.0f),nullptr);
 
 	 visualData[0].addVertex(0.5f *NegPointFive, NegPointFive / 4.0f, 2 * PointFive);
 	 visualData[0].addVertex(0.5f *PointFive, NegPointFive / 4.0f, 2 * PointFive);
@@ -351,35 +341,25 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 	//--------------------------------------------------------------------------
 	// Create Mounting Points
 	//--------------------------------------------------------------------------
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, Scale * 0.9f));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.7f,0.0f, Scale * 0.9f),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, Scale * 0.9f));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.7f,0.0f, Scale * 0.9f),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, 0.0f));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.7f,0.0f, 0.0f),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, 0.0f));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.7f,0.0f, 0.0f),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.7f,0.0f, -Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.7f,0.0f, -Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -2 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.7f,0.0f, -2 *Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -2 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.7f,0.0f, -2 *Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(PointFive * 0.7f,0.0f, -2.9 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(PointFive * 0.7f,0.0f, -2.9 *Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
-	 mountingPoints.addItem(Vertex(NegPointFive * 0.7f,0.0f, -2.9 *Scale));
-	 mountingNormals.addItem(Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(Vertex(NegPointFive * 0.7f,0.0f, -2.9 *Scale),Vertex(0.0f,1.0f,0.0f),nullptr);
 
 	 GLfloat** rotMatrix = new GLfloat*[3];
 		for(int i = 0; i < 3 ; i++)
@@ -397,6 +377,7 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 
 		delete []rotMatrix;
 
+		/*
 		for(int i = 0; i < 10; i++)
 		{
 			Vertex tmoun = mountingPoints[i];
@@ -407,7 +388,7 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 			mountingPoints.addItem(tmoun);
 			mountingNormals.addItem(tnorm);
 		}
-	 
+	 */
 	//--------------------------------------------------------------------------
 	// Create Cylinder Sleeves
 	//--------------------------------------------------------------------------
