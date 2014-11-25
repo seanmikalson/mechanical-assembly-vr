@@ -177,7 +177,7 @@ bool MechanicalObject::isConnectedCorrectly()
 	#define NUMBR_OF_CONNECTED_POINTS_INCORRECT currentMounts.getNoItems() != correctMounts.getNoItems()
 	#define NO_CONNECTED_POINTS currentMounts.getNoItems() == 0
 
-	if( NUMBR_OF_CONNECTED_POINTS_INCORRECT || NO_CONNECTED_POINTS )
+	if( currentMounts.getNoItems() != correctMounts.getNoItems() || currentMounts.getNoItems() == 0 )
 		return false;
 	
 	for(int i = 0; i < currentMounts.getNoItems(); i++)
@@ -195,92 +195,59 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && tgt.getCurrentMount(minIndex) == nullptr
 
 	int noItems = mountingPoints.getNoItems();
-	bool connected = false;
-	int connectedIndex = 0;
 	
 	for( int i = 0; i < noItems ; i++ )
 	{
-		List<GLfloat> distances = List<GLfloat>(noItems);
-
-		//Find closest mounting point on target object
-		for( int b = 0; b < (*target).getNoMountingPoints(); b++ )
+		if( ((mountingPoints[i] + getPosition()) - (*correctMounts[i] + (*target).getPosition())).length() > threshold)
 		{
-			
-			GLfloat distance = ((mountingPoints[i] + getPosition())
-				- ((*target).getMountingPoint(b) + (*target).getPosition() )).length();
-
-			if(distance < 0)
-				distance *= -1.0f;
-
-			distances.addItem(distance);
+			return false;
 		}
-
-		int minIndex = distances.minIndex();
-		if(minIndex < 0) break;
-
-		if( distances[minIndex] <= threshold && (*target).getCurrentMount(minIndex) == nullptr )
+		else
 		{
-			//Setup Connection on this object and target Object
-			currentMounts[i] = (*target).getMountingPointPtr(minIndex);
-			currentMountsNormal[i] = (*target).getMountingPointNormalPtr(minIndex);
-			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(minIndex);
-			(*target).setCurrentMount(minIndex,&mountingPoints[i]);
-
-			// Set the connected index; doesn't matter which one, we just need to know *a* connected index.
-			connectedIndex = i;
-			connected = true;
+			currentMounts[i] = (*target).getMountingPointPtr(i);
+			currentMountsNormal[i] = (*target).getMountingPointNormalPtr(i);
+			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(i);
+			(*target).setCurrentMount(i,&mountingPoints[i]);
 		}
-
+		
 	}
 
-	if(connected)
-	{
-		/*
-		float angle;
-		Vertex axis;
-
-		Vertex* objectNormal = mountingNormals.getItem(connectedIndex);
-		Vertex* targetNormal = currentMountsNormal[connectedIndex];
-		Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
 		
-		float cosine = (*objectNormal).dotProduct(targetNormalReversed);
+	float angle;
+	Vertex axis;
+
+	Vertex objectNormal = (*mountingNormals.getItem(0));
+	Vertex* targetNormal = currentMountsNormal[0];
+	Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
+		
+	float cosine = objectNormal.dotProduct(targetNormalReversed);
+	if((cosine <= 0.999999 || cosine >= 1.000001) && (cosine <= -0.999999 || cosine >= -1.000001))
+	{
 		angle = acosf(cosine);
 
-		axis = (*objectNormal).crossProduct(targetNormalReversed);
+		axis = objectNormal.crossProduct(targetNormalReversed);
 		rotate(angle, axis);
+	}
 		
-		Vertex* objectNormalPerp = mountingNormalPerps.getItem(connectedIndex);
-		Vertex* targetNormalPerp = currentMountsPerp[connectedIndex];
-		Vertex targetPerpReversed = Vertex((*targetNormalPerp).getX(), (*targetNormalPerp).getY(), (*targetNormalPerp).getZ());
+	Vertex objectNormalPerp = (*mountingNormalPerps.getItem(0));
+	Vertex* targetNormalPerp = currentMountsPerp[0];
+	Vertex targetPerpReversed = Vertex((*targetNormalPerp).getX()*-1.0f, (*targetNormalPerp).getY()*-1.0f, (*targetNormalPerp).getZ()*-1.0f);
 
-		float angle2;
-		float cosine2 = (*objectNormalPerp).dotProduct(targetPerpReversed);
-		if((cosine2 <= 0.99 || cosine2 >= 1.01) && (cosine2 <= -0.99 || cosine2 >= -1.01))
-		{
-			angle2 = acosf(cosine2);
+	float angle2;
+	float cosine2 = objectNormalPerp.dotProduct(targetPerpReversed);
+	if((cosine2 <= 0.9999999 || cosine2 >= 1.00000001) && (cosine2 <= -0.99999999 || cosine2 >= -1.000000001))
+	{
+		angle2 = acosf(cosine2);
 
-			Vertex axis2 = (*objectNormalPerp).crossProduct((*targetNormalPerp));
-			rotate(angle2, axis2);
-		}
-		*/
-		GLfloat angle = acos((*(*target).getMountingPointNormalPtr(0)).dotProduct(mountingNormals[0]));
-		Vertex axis = (*(*target).getMountingPointNormalPtr(0)).crossProduct(mountingNormals[0]);
-
-		if(axis.length() > 0.00005f)
-		{
-
-			axis.normalize();
-	
-			(*this).rotate(angle,axis);
-		}
-
-		Vertex objectPosition = mountingPoints[0] + getPosition();
-		Vertex targetPosition = (*currentMounts[0]) + (*target).getPosition();
-		adjustPosition(targetPosition.getX() - objectPosition.getX(), targetPosition.getY() - objectPosition.getY(), targetPosition.getZ() - objectPosition.getZ());
-
+		Vertex axis2 = objectNormalPerp.crossProduct(targetPerpReversed);
+		rotate(angle2, axis2);
 	}
 
-	return connected;
+	Vertex objectPosition = mountingPoints[0] + getPosition();
+	Vertex targetPosition = (*currentMounts[0]) + (*target).getPosition();
+	adjustPosition(targetPosition.getX() - objectPosition.getX(), targetPosition.getY() - objectPosition.getY(), targetPosition.getZ() - objectPosition.getZ());
+
+	return true;
 }
 void MechanicalObject::drawMountingMarkers()
 {
@@ -340,7 +307,9 @@ bool MechanicalObject::isConnected()
 void MechanicalObject::disconect()
 {
 	for(int i = 0; i < correctMounts.getNoItems(); i++)
-		correctMounts[i] = nullptr;
+	{
+		currentMounts[i] = nullptr;
+	}
 }
 
 void MechanicalObject::rotateX(GLfloat rad)

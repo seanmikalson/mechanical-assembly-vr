@@ -210,9 +210,11 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
   			{
   				MechanicalObject* obj = (MechanicalObject*)boundingVolume.getGameObject(i);
  				MechanicalObject* target = (MechanicalObject*)boundingVolume.getGameObject(j);
+				(*obj).disconect();
+				(*target).disconect();
 				if(i!=j)
 				{
-					if((*obj).connectTo(target,0.5f)) break;
+					if((*obj).connectTo(target,2.0f)) break;
 				}
 			}
 		}
