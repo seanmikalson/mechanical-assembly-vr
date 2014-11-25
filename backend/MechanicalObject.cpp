@@ -56,6 +56,7 @@ MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 	(*this).currentMountsNormal = rhs.currentMountsNormal;
 	(*this).currentMountsPerp = rhs.currentMountsPerp;
 	(*this).name = rhs.name;
+	(*this).gameObjectType = rhs.gameObjectType;
 }
 
 //-------------------------------------
@@ -276,6 +277,51 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 
 	return connected;
 }
+void MechanicalObject::drawMountingMarkers()
+{
+	if(mountingMarker == nullptr || markerNormal == Vertex(0.0f,0.0f,0.0f))
+		return;
+
+	GLfloat** rotMatrix = new GLfloat*[3];
+	for(int i = 0; i < 3 ; i++)
+		rotMatrix[i] = new GLfloat[3];
+
+	for(int i = 0; i < mountingPoints.getNoItems(); i++)
+	{
+		GLfloat angle = acos(markerNormal.dotProduct(mountingNormals[i]));
+		Vertex axis = markerNormal.crossProduct(mountingNormals[i]);
+		Vertex translate = (*this).getPosition() + mountingPoints[i];
+
+		if(axis.length() < 0.00005f)
+			axis = Vertex(1.0f,0.0f,0.0f);
+
+		axis.normalize();
+		generateRotateMatrix(angle ,axis,rotMatrix);
+
+		runRotation(rotMatrix,1,&markerNormal);
+		(*mountingMarker).rotate(angle ,axis);
+		
+		(*mountingMarker).adjustPosition(translate.getX(),
+										 translate.getY(),
+										 translate.getZ());
+
+		(*mountingMarker).draw();
+
+		(*mountingMarker).adjustPosition(-translate.getX(),
+										 -translate.getY(),
+										 -translate.getZ());
+
+		(*mountingMarker).rotate(-angle ,axis);
+
+		generateRotateMatrix(-angle ,axis,rotMatrix);
+		runRotation(rotMatrix,1,&markerNormal);
+	}
+
+	for(int i = 0; i < 3; i++)
+		delete rotMatrix[i];
+
+	delete []rotMatrix;
+}
 bool MechanicalObject::isConnected()
 {
 	for(int i = 0; i < correctMounts.getNoItems(); i++)
@@ -421,6 +467,7 @@ MechanicalObject& MechanicalObject::operator=(const MechanicalObject& rhs)
 	(*this).currentMounts = rhs.currentMounts;
 	(*this).currentMountsNormal = rhs.currentMountsNormal;
 	(*this).currentMountsPerp = rhs.currentMountsPerp;
+	(*this).gameObjectType = rhs.gameObjectType;
 	(*this).name = rhs.name;
 
 

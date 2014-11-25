@@ -10,13 +10,14 @@ class WorkShop EXTENDS GameObject{
 	public:
 		WorkShop(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, List<Material> material);
 };
-class EngineHead EXTENDS MechanicalObject{
-	public:
-		EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
-};
 class EngineBlock EXTENDS MechanicalObject{
 	public:
 		EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
+};
+class EngineHead EXTENDS MechanicalObject{
+	public:
+		EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
+		void setupCorrectMountingPoints(EngineBlock* engineBlock, int side);
 };
 class Square EXTENDS GameObject{
 
@@ -24,7 +25,7 @@ class Square EXTENDS GameObject{
 		Square(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
 		void setupPhysData(GLfloat Scale);
 };
-class Cube : public MechanicalObject{
+class Cube EXTENDS MechanicalObject{
 
 	public:
 		 Cube(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);

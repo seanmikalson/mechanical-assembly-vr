@@ -9,6 +9,8 @@ class MechanicalObject EXTENDS GameObject
 		List<Vertex*> correctMounts, currentMounts, currentMountsPerp, currentMountsNormal;
 
 	public:
+		static GameObject* mountingMarker;
+		static Vertex markerNormal;
 		//-------------------------------------
 		// Constructors 
 		//-------------------------------------
@@ -47,6 +49,7 @@ class MechanicalObject EXTENDS GameObject
 		bool connectTo(MechanicalObject* target, GLfloat threshold);
 		bool isConnected();
 		void disconect();
+		void drawMountingMarkers();
 
 		void rotateX(GLfloat rad);
 		void rotateY(GLfloat rad);
