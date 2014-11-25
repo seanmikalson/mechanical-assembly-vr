@@ -235,6 +235,7 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 
 	if(connected)
 	{
+		/*
 		float angle;
 		Vertex axis;
 
@@ -260,6 +261,17 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 
 			Vertex axis2 = (*objectNormalPerp).crossProduct((*targetNormalPerp));
 			rotate(angle2, axis2);
+		}
+		*/
+		GLfloat angle = acos((*(*target).getMountingPointNormalPtr(0)).dotProduct(mountingNormals[0]));
+		Vertex axis = (*(*target).getMountingPointNormalPtr(0)).crossProduct(mountingNormals[0]);
+
+		if(axis.length() > 0.00005f)
+		{
+
+			axis.normalize();
+	
+			(*this).rotate(angle,axis);
 		}
 
 		Vertex objectPosition = mountingPoints[0] + getPosition();

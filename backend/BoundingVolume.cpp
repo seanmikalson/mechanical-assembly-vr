@@ -62,8 +62,8 @@ BoundingVolume::BoundingVolume()
 }
 BoundingVolume::~BoundingVolume()
 {
-	for(ALL_OBJECTS)
-		delete gameObjects[i];
+	//for(ALL_OBJECTS)
+	//	delete gameObjects[i];
 }
 BoundingVolume::BoundingVolume(const BoundingVolume& rhs)
 {
