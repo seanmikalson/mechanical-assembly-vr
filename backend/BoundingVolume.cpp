@@ -35,7 +35,7 @@ BoundingVolume::BoundingVolume()
 	//setup engine
 	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
 	gameObjects.addItem(new EngineHead(2.0f,13.0f,0.0f,-10.0f,Grey));
-	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[1],0);
+	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],0);
 	MechanicalObject tempm;
 	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
 	tempm.markerNormal = Vertex(0.0f,1.0f,0.0f);
