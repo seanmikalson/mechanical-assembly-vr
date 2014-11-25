@@ -195,6 +195,7 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 
 	int noItems = mountingPoints.getNoItems();
 	bool connected = false;
+	int connectedIndex = 0;
 	
 	for( int i = 0; i < noItems ; i++ )
 	{
@@ -213,11 +214,6 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 			distances.addItem(distance);
 		}
 
-		for(int i = 0; i < distances.getNoItems(); i++)
-		{
-			printf("distance %d: %f\n", i, distances[i]);
-		}
-
 		int minIndex = distances.minIndex();
 		if(minIndex < 0) break;
 
@@ -228,8 +224,10 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 			currentMountsNormal[i] = (*target).getMountingPointNormalPtr(minIndex);
 			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(minIndex);
 			(*target).setCurrentMount(minIndex,&mountingPoints[i]);
+
+			// Set the connected index; doesn't matter which one, we just need to know *a* connected index.
+			connectedIndex = i;
 			connected = true;
-			printf("min distance: %f\n", distances[minIndex]);
 		}
 
 	}
@@ -239,38 +237,33 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		float angle;
 		Vertex axis;
 
-		Vertex* objectNormal = mountingNormals.getItem(0);
-		Vertex* targetNormal = currentMountsNormal[0];
+		Vertex* objectNormal = mountingNormals.getItem(connectedIndex);
+		Vertex* targetNormal = currentMountsNormal[connectedIndex];
 		Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
-		printf("object: %f,%f,%f\n", (*objectNormal).getX(), (*objectNormal).getY(), (*objectNormal).getZ());
 		
 		float cosine = (*objectNormal).dotProduct(targetNormalReversed);
-		printf("cosine: %f\n", cosine);
 		angle = acosf(cosine);
-		printf("angle: %f\n", angle);
 
 		axis = (*objectNormal).crossProduct(targetNormalReversed);
 		rotate(angle, axis);
-		printf("axis: %f,%f,%f\n", axis.getX(), axis.getY(), axis.getZ());
 		
-		Vertex* objectNormalPerp = mountingNormalPerps.getItem(0);
-		Vertex* targetNormalPerp = currentMountsPerp[0];
+		Vertex* objectNormalPerp = mountingNormalPerps.getItem(connectedIndex);
+		Vertex* targetNormalPerp = currentMountsPerp[connectedIndex];
 		Vertex targetPerpReversed = Vertex((*targetNormalPerp).getX(), (*targetNormalPerp).getY(), (*targetNormalPerp).getZ());
-		printf("objectp: %f,%f,%f\n", (*objectNormalPerp).getX(), (*objectNormalPerp).getY(), (*objectNormalPerp).getZ());
-		printf("targetp: %f,%f,%f\n", targetPerpReversed.getX(), targetPerpReversed.getY(), targetPerpReversed.getZ());
 
 		float angle2;
 		float cosine2 = (*objectNormalPerp).dotProduct(targetPerpReversed);
-		if((cosine2 <= 0.9 || cosine2 >= 1.1) && (cosine2 <= -0.9 || cosine2 >= -1.1))
+		if((cosine2 <= 0.99 || cosine2 >= 1.01) && (cosine2 <= -0.99 || cosine2 >= -1.01))
 		{
-			printf("cosine2: %f\n", cosine2);
 			angle2 = acosf(cosine2);
-			printf("angle2: %f\n", angle2);
 
 			Vertex axis2 = (*objectNormalPerp).crossProduct((*targetNormalPerp));
-			printf("axis2: %f,%f,%f\n", axis2.getX(), axis2.getY(), axis2.getZ());
 			rotate(angle2, axis2);
 		}
+
+		Vertex objectPosition = mountingPoints[0] + getPosition();
+		Vertex targetPosition = (*currentMounts[0]) + (*target).getPosition();
+		adjustPosition(targetPosition.getX() - objectPosition.getX(), targetPosition.getY() - objectPosition.getY(), targetPosition.getZ() - objectPosition.getZ());
 
 	}
 
