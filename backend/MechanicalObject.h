@@ -7,6 +7,7 @@ class MechanicalObject EXTENDS GameObject
 		std::string name;
 		List<Vertex> mountingPoints, mountingNormals, mountingNormalPerps;
 		List<Vertex*> correctMounts, currentMounts, currentMountsPerp, currentMountsNormal;
+		bool connectedCorrect;
 
 	public:
 		static GameObject* mountingMarker;
