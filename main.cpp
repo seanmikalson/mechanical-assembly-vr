@@ -160,6 +160,20 @@ int colorIndex=3; // 3 colors - red, green, blue
 bool touched; // haptic code
 int stereo=1; // if stereo=0 rendering mono view 
 
+GLfloat lightKa[] = {.2f, .2f, .2f, 1.0f};  // ambient light
+GLfloat lightKd[] = {.7f, .7f, .7f, 1.0f};  // diffuse light
+GLfloat lightKs[] = {1, 1, 1, 1};           // specular light
+
+GLfloat wronglightKa[] = {.2f, 0.0f, 0.0f, 0.0f};  // ambient light
+GLfloat wronglightKd[] = {.7f, 0.0f, 0.0f, 0.0f};  // diffuse light
+GLfloat wronglightKs[] = {1, 0, 0, 0};           // specular light
+
+GLfloat correctlightKa[] = {0.0f, 0.2f, 0.0f, 0.0f};  // ambient light
+GLfloat correctlightKd[] = {0.0f, 0.7f, 0.0f, 0.0f};  // diffuse light
+GLfloat correctlightKs[] = {0, 1, 0, 0};           // specular light
+
+Timer placedTimer;
+
 // haptic callback
 #ifdef HAPTIC
 
@@ -204,6 +218,8 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 	{
 		if((*boundingVolume.getGameObject(i)).isGrabbed())
 		{
+			placedTimer.start();
+			(*boundingVolume.getGameObject(i)).setPlaced(true);
 			(*boundingVolume.getGameObject(i)).setGrabbed(false);
 			// Go through all the objects and attempt to connect which may be successful even though it is incorrect placement 
   			for(int j = 0; j < boundingVolume.getNoItems(); j++) 
@@ -448,9 +464,7 @@ void clearSharedMem()
 void initLights()
 {
     // set up light colors (ambient, diffuse, specular)
-    GLfloat lightKa[] = {.2f, .2f, .2f, 1.0f};  // ambient light
-    GLfloat lightKd[] = {.7f, .7f, .7f, 1.0f};  // diffuse light
-    GLfloat lightKs[] = {1, 1, 1, 1};           // specular light
+
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
     glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
@@ -617,6 +631,32 @@ void drawObject(){
 
 		for(int i = 0; i < boundingVolume.getNoItems(); i++)
 		{
+			if(placedTimer.getElapsedTimeInMilliSec() < 500)
+			{
+				if(!(*boundingVolume.getGameObject(i)).wasJustPlaced()) continue;
+
+				if((*(MechanicalObject*)boundingVolume.getGameObject(i)).isConnectedCorrectly())
+				{
+					glLightfv(GL_LIGHT0, GL_AMBIENT, correctlightKa);
+					glLightfv(GL_LIGHT0, GL_DIFFUSE, correctlightKd);
+					glLightfv(GL_LIGHT0, GL_SPECULAR, correctlightKs);
+				}
+				else
+				{
+					glLightfv(GL_LIGHT0, GL_AMBIENT, wronglightKa);
+					glLightfv(GL_LIGHT0, GL_DIFFUSE, wronglightKd);
+					glLightfv(GL_LIGHT0, GL_SPECULAR, wronglightKs);
+				}
+			}
+			else
+			{
+				placedTimer.stop();
+				glLightfv(GL_LIGHT0, GL_AMBIENT, lightKa);
+				glLightfv(GL_LIGHT0, GL_DIFFUSE, lightKd);
+				glLightfv(GL_LIGHT0, GL_SPECULAR, lightKs);
+				(*boundingVolume.getGameObject(i)).setPlaced(false);
+			}
+
 			if((*boundingVolume.getGameObject(i)).isGrabbed())
 			{
 				hlGetDoublev(HL_PROXY_POSITION, proxyPos);
@@ -816,7 +856,9 @@ void keyboardCB(unsigned char key, int x, int y)
 			}
 		}
 		break;
-
+	case 't':
+		stereo = (stereo == 1) ? 0 : 1;
+		break;
     default:
         ;
     }

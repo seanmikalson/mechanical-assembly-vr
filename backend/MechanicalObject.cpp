@@ -174,19 +174,7 @@ void MechanicalObject::addMountingPoint(Vertex point, Vertex normal, Vertex* cor
 }
 bool MechanicalObject::isConnectedCorrectly()
 {
-	#define NUMBR_OF_CONNECTED_POINTS_INCORRECT currentMounts.getNoItems() != correctMounts.getNoItems()
-	#define NO_CONNECTED_POINTS currentMounts.getNoItems() == 0
-
-	if( currentMounts.getNoItems() != correctMounts.getNoItems() || currentMounts.getNoItems() == 0 )
-		return false;
-	
-	for(int i = 0; i < currentMounts.getNoItems(); i++)
-	{
-		if(currentMounts[i] != nullptr && currentMounts[i] != correctMounts[i])
-			return false;
-	}
-	
-	return true;
+	return connectedCorrect;
 }
 bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 {	
@@ -209,10 +197,10 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(i);
 			(*target).setCurrentMount(i,&mountingPoints[i]);
 		}
-		
 	}
 
-		
+	connectedCorrect = true;
+
 	float angle;
 	Vertex axis;
 
@@ -306,10 +294,11 @@ bool MechanicalObject::isConnected()
 }
 void MechanicalObject::disconect()
 {
-	for(int i = 0; i < correctMounts.getNoItems(); i++)
+	for(int i = 0; i < currentMounts.getNoItems(); i++)
 	{
 		currentMounts[i] = nullptr;
 	}
+	connectedCorrect = false;
 }
 
 void MechanicalObject::rotateX(GLfloat rad)

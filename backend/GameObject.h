@@ -12,6 +12,7 @@ class GameObject
 		PhysicsData physicsData;
 		bool touched;
 		bool grabbed;
+		bool justPlaced;
 		unsigned int shapeId;
 		GameObjectType gameObjectType;
 
@@ -27,6 +28,7 @@ class GameObject
 		void setTouched(bool touch) {touched = touch;};
 		void setGrabbed(bool grabbedv){grabbed = grabbedv;};
 		void setShapeId(unsigned int id){shapeId = id;};
+		void setPlaced(bool placed){justPlaced = placed;};
 		
 
 		//-----------------------------------------
@@ -39,6 +41,7 @@ class GameObject
 		int getNoVisData(){return visualData.getNoItems();};
 		bool isTouched(){return touched;};
 		bool isGrabbed(){return grabbed;};
+		bool wasJustPlaced(){return justPlaced;};
 		unsigned int getShapeId(){return shapeId;};
 		GameObjectType getType(){return gameObjectType;};
 
