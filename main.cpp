@@ -856,7 +856,9 @@ void keyboardCB(unsigned char key, int x, int y)
 			}
 		}
 		break;
-
+	case 't':
+		stereo = (stereo == 1) ? 0 : 1;
+		break;
     default:
         ;
     }
