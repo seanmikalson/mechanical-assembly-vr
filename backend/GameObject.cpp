@@ -32,6 +32,7 @@ GameObject::GameObject(const GameObject& rhs)
 	(*this).touched=rhs.touched;
 	(*this).gameObjectType = rhs.gameObjectType;
 	(*this).shapeId = rhs.shapeId;
+	(*this).justPlaced = rhs.justPlaced;
 }
 
 //------------------------------------------------
@@ -226,6 +227,7 @@ GameObject& GameObject::operator=(const GameObject& rhs)
 	(*this).grabbed=rhs.grabbed;
 	(*this).touched=rhs.touched;
 	(*this).shapeId = rhs.shapeId;
+	(*this).justPlaced = rhs.justPlaced;
 
 	return *this;
 }

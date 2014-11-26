@@ -1,46 +1,25 @@
 #include "MechanicalObject.h"
 #define ALL_VISUAL_DATA_ENTRIES int i = 0; i < noVisData; i++
+#define CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE connectionIndex < 0 || connectionIndex >= connections.getNoItems() || pointIndex >= (*connections.getItem(connectionIndex)).getNoMountingPoints() || pointIndex < 0
 
 //-------------------------------------
 // Constructors 
 //-------------------------------------
 MechanicalObject::MechanicalObject() : GameObject()
 {
-	mountingPoints = List<Vertex>();
-	mountingNormals = List<Vertex>();
-	mountingNormalPerps = List<Vertex>();
-	correctMounts = List<Vertex*>();
-	currentMounts = List<Vertex*>();
-	currentMountsPerp = List<Vertex*>();
-	currentMountsNormal = List<Vertex*>();
-	for(int i = 0; i < 10; i++)
-	{
-		currentMounts.addItem(nullptr);
-		currentMountsPerp.addItem(nullptr);
-		currentMountsNormal.addItem(nullptr);
-	}
+	connections = List<Connections>();
 
 	name = "";
 	gameObjectType = Mechanical;
+	connectedCorrect = false;
 }
-MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noPoints) 
+MechanicalObject::MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noConnections) 
 	: GameObject(nPosition.getX(),nPosition.getY(),nPosition.getZ(),visSize,forceSize)
 {
-	mountingPoints = List<Vertex>(noPoints);
-	mountingNormals = List<Vertex>(noPoints);
-	mountingNormalPerps = List<Vertex>(noPoints);
-	correctMounts = List<Vertex*>(noPoints);
-	currentMounts = List<Vertex*>(noPoints);
-	currentMountsNormal = List<Vertex*>(noPoints);
-	currentMountsPerp = List<Vertex*>(noPoints);
-	for(int i = 0; i < noPoints; i++)
-	{
-		currentMounts.addItem(nullptr);
-		currentMountsNormal.addItem(nullptr);
-		currentMountsPerp.addItem(nullptr);
-	}
+	connections = List<Connections>(noConnections);
 	name = "";
 	gameObjectType = Mechanical;
+	connectedCorrect = false;
 }
 MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 {
@@ -48,155 +27,191 @@ MechanicalObject::MechanicalObject(const MechanicalObject& rhs)
 	(*this).visualData = rhs.visualData;
 	(*this).forces = rhs.forces;
 
-	(*this).mountingPoints = rhs.mountingPoints;
-	(*this).mountingNormals = rhs.mountingNormals;
-	(*this).mountingNormalPerps = rhs.mountingNormalPerps;
-	(*this).correctMounts = rhs.correctMounts;
-	(*this).currentMounts = rhs.currentMounts;
-	(*this).currentMountsNormal = rhs.currentMountsNormal;
-	(*this).currentMountsPerp = rhs.currentMountsPerp;
+	(*this).connections = rhs.connections;
 	(*this).name = rhs.name;
 	(*this).gameObjectType = rhs.gameObjectType;
+	(*this).connectedCorrect = rhs.connectedCorrect;
 }
 
 //-------------------------------------
 // Get Functions
 //-------------------------------------
-Vertex MechanicalObject::getMountingPointWorldPosition(int index)
+Vertex MechanicalObject::getMountingPointWorldPosition(int pointIndex, int connectionIndex)
 {
-	if(index < mountingPoints.getNoItems() && index >= 0)
-		return physicsData.getPosition() + mountingPoints[index];
-
-	return Vertex();
-}
-Vertex MechanicalObject::getMountingPoint(int index)
-{
-	if(index < mountingPoints.getNoItems() && index >= 0)
-		return mountingPoints[index];
-
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
 		return Vertex();
-}
-Vertex* MechanicalObject::getMountingPointNormalPtr(int index)
-{
-	if(index < mountingNormals.getNoItems() && index >= 0)
-		return &mountingNormals[index];
 
-	return nullptr;
+		return physicsData.getPosition() + (*connections.getItem(connectionIndex)).getMountingPoint(pointIndex);
 }
-Vertex* MechanicalObject::getMountingPointNormalPerpPtr(int index)
+Vertex MechanicalObject::getMountingPoint(int pointIndex, int connectionIndex)
 {
-	if(index < mountingNormalPerps.getNoItems() && index >= 0)
-		return &mountingNormalPerps[index];
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return Vertex();
 
-	return nullptr;
+	return (*connections.getItem(connectionIndex)).getMountingPoint(pointIndex);
 }
-Vertex* MechanicalObject::getCorrectMount(int index)
+Vertex* MechanicalObject::getMountingPointNormalPtr(int pointIndex, int connectionIndex)
 {
-	if(index < mountingPoints.getNoItems() && index >= 0)
-		return correctMounts[index];
-
-	return nullptr;
-}
-Vertex* MechanicalObject::getCurrentMount(int index)
-{
-	if(index < currentMounts.getNoItems() && index >= 0)
-		return currentMounts[index];
-
-	return nullptr;
-}
-Vertex* MechanicalObject::getMountingPointPtr(int index)
-{
-	if(index < mountingPoints.getNoItems() && index >= 0)
-		return &mountingPoints[index];
-
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
 		return nullptr;
+	
+	return (*connections.getItem(connectionIndex)).getMountingNormalPtr(pointIndex);
+}
+Vertex* MechanicalObject::getMountingPointNormalPerpPtr(int pointIndex, int connectionIndex)
+{
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return nullptr;
+	
+	return (*connections.getItem(connectionIndex)).getMountingNormalPerpPtr(pointIndex);
+}
+Vertex* MechanicalObject::getCorrectMount(int pointIndex, int connectionIndex)
+{
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return nullptr;
+	
+	return (*connections.getItem(connectionIndex)).getCorrectMount(pointIndex);
+}
+Vertex* MechanicalObject::getCurrentMount(int pointIndex, int connectionIndex)
+{
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return nullptr;
+	
+	return (*connections.getItem(connectionIndex)).getCurrentMount(pointIndex);
+}
+Vertex* MechanicalObject::getMountingPointPtr(int pointIndex, int connectionIndex)
+{
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return nullptr;
+	
+	return (*connections.getItem(connectionIndex)).getMountingPointPtr(pointIndex);
 }
 
 //-------------------------------------
 // Set Functions
 //-------------------------------------
-bool MechanicalObject::setCorrectMount(int index, Vertex* correct)
+bool MechanicalObject::setCorrectMount(int pointIndex, int connectionIndex, Vertex* correct)
 {
-	if(index < correctMounts.getNoItems() && index >= 0)
-	{
-		correctMounts[index] = correct;
-		return true;
-	}
-	return false;
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return false;
+
+	(*connections.getItem(connectionIndex)).setCorrectMount(correct,pointIndex);
+	return true;
 }
-bool MechanicalObject::setPoint(int index, Vertex point)
+bool MechanicalObject::setPoint(int pointIndex, int connectionIndex, Vertex point)
 {
-	if(index < mountingPoints.getNoItems() && index >= 0)
-	{
-		mountingPoints[index] = point;
-		return true;
-	}
-	return false;
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return false;
+
+	*(*connections.getItem(connectionIndex)).getMountingPointPtr(pointIndex) = point;
+	return true;
 }
-bool MechanicalObject::setNormal(int index, Vertex normal)
+bool MechanicalObject::setNormal(int pointIndex, int connectionIndex, Vertex normal)
 {
-	if(index < mountingNormals.getNoItems() && index >= 0)
-	{
-		mountingNormals[index] = normal;
-		mountingNormalPerps[index] = normal.getPerpendicular();
-		return true;
-	}
-	return false;
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return false;
+
+	*(*connections.getItem(connectionIndex)).getMountingNormalPtr(pointIndex) = normal;
+	return true;
 }
-bool MechanicalObject::setCurrentMount(int index, Vertex* current)
+bool MechanicalObject::setCurrentMount(int pointIndex, int connectionIndex, Vertex* current)
 {
-	if(index < currentMounts.getNoItems() && index >= 0)
-	{
-		currentMounts[index] = current;
-		return true;
-	}
-	return false;
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return false;
+
+	(*connections.getItem(connectionIndex)).setCurrentMount(current,pointIndex);
+	return true;
 }
 
 //-------------------------------------
 // Class Functions
 //-------------------------------------
-bool MechanicalObject::isCorrectMount(int index, Vertex* target)
+bool MechanicalObject::isCorrectMount(int pointIndex, int connectionIndex, Vertex* target)
 {
-	if(index < mountingPoints.getNoItems() && index >= 0)
-	{
-		if(target == correctMounts[index])
-			return true;
-	}
-	return false;
+	if(CONNECTION_OR_POINT_INDICIES_OUT_OF_RANGE)
+		return false;
+
+	Vertex * current = (*connections.getItem(connectionIndex)).getCurrentMount(pointIndex);
+	Vertex * correct = (*connections.getItem(connectionIndex)).getCorrectMount(pointIndex);
+	
+	return (current == correct);
 }
-void MechanicalObject::addMountingPoint(Vertex point, Vertex normal, Vertex* correct)
+void MechanicalObject::addMountingPoint(int connectionIndex, Vertex point, Vertex normal)
 {
-	mountingPoints.addItem(point);
-	mountingNormals.addItem(normal);
-	mountingNormalPerps.addItem(normal.getPerpendicular());
-	correctMounts.addItem(correct);
+	(*connections.getItem(connectionIndex)).addMountingPoint(point);
+	(*connections.getItem(connectionIndex)).addMountingNormal(normal);
+	(*connections.getItem(connectionIndex)).addMountingNormalPerp(normal.getPerpendicular());
 }
 bool MechanicalObject::isConnectedCorrectly()
 {
 	return connectedCorrect;
 }
+bool MechanicalObject::canConnectToConnection(MechanicalObject* target, int tgtConnection, int thisConnection)
+{
+	#define TGT_INDEX_OUT_OF_RANGE tgtConnection >= (*target).getNoConnections() || tgtConnection < 0 
+	#define THIS_INDEX_OUT_OF_RANGE thisConnection <0 || thisConnection >= getNoConnections()
+	
+
+	if(TGT_INDEX_OUT_OF_RANGE || THIS_INDEX_OUT_OF_RANGE )
+		return false;
+
+	for(int b = 0; b < getNoMountingPoints(thisConnection); b++)// FOR all correct mounts
+	{
+		for(int i = 0; i < (*target).getNoMountingPoints(tgtConnection); i++) // all mounting points int target connection
+		{
+			if(*getCorrectMount(b,thisConnection) + (*target).getPosition() == (*target).getMountingPointWorldPosition(i,tgtConnection))
+				return true;
+		}
+	}
+	return false;
+}
+bool MechanicalObject::canConnectTo(MechanicalObject* target, int* tgtIndex, int* thisIndex)
+{
+	for(int b = 0; b < getNoConnections(); b++)
+	{
+		for(int i = 0; i < (*target).getNoConnections(); i++)
+		{
+			if(canConnectToConnection(target,i,b))
+			{
+				*thisIndex = b;
+				*tgtIndex = i;
+				return true;
+			}
+		}
+	}
+	return false;
+}
 bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 {	
-	#define ALL_MOUNTING_POINTS_IN_THIS_OBJECT int i = 0; i < noItems ; i++
-	#define ALL_MOUNTING_POINTS_IN_TARGET int b = 0; b < tgt.getNoMountingPoints(); b++
-	#define CLOSE_ENOUGH_TO_VACANT_TARGET_POINT distances[minIndex] <= threshold && tgt.getCurrentMount(minIndex) == nullptr
+	#define ALL_MOUNTING_POINTS_I int i = 0; i < getNoMountingPoints(connectionIndex); i++
 
-	int noItems = mountingPoints.getNoItems();
-	
-	for( int i = 0; i < noItems ; i++ )
+	int connectionIndex;
+	int tgtConnectionIndex;
+	bool canConnectToTarget = canConnectTo(target,&tgtConnectionIndex,&connectionIndex);
+
+	connectedCorrect = false;
+
+	if(!canConnectToTarget)
+		return false;
+
+	//Check if all points close enough to their target
+	for(ALL_MOUNTING_POINTS_I)
 	{
-		if( ((mountingPoints[i] + getPosition()) - (*correctMounts[i] + (*target).getPosition())).length() > threshold)
-		{
+		Vertex currentPoint = getMountingPointWorldPosition(i,connectionIndex);
+		Vertex correctPoint = (*getCorrectMount(i,connectionIndex) + (*target).getPosition());
+
+		if((currentPoint - correctPoint).length() > threshold)
 			return false;
-		}
-		else
-		{
-			currentMounts[i] = (*target).getMountingPointPtr(i);
-			currentMountsNormal[i] = (*target).getMountingPointNormalPtr(i);
-			currentMountsPerp[i] = (*target).getMountingPointNormalPerpPtr(i);
-			(*target).setCurrentMount(i,&mountingPoints[i]);
-		}
+	}
+	
+	Connections* currentConnection = connections.getItem(connectionIndex);
+
+	//Set current mounts
+	for(ALL_MOUNTING_POINTS_I)
+	{
+		(*currentConnection).setCurrentMount(getCorrectMount(i,connectionIndex),i);
+		(*currentConnection).setCurrentMountsNormal((*target).getMountingPointNormalPtr(i,tgtConnectionIndex),i);
+		(*currentConnection).setCurrentMountsPerp((*target).getMountingPointNormalPerpPtr(i,tgtConnectionIndex),i);
+		(*target).setCurrentMount(i,tgtConnectionIndex,(*currentConnection).getMountingPointPtr(i));
 	}
 
 	connectedCorrect = true;
@@ -204,8 +219,9 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	float angle;
 	Vertex axis;
 
-	Vertex objectNormal = (*mountingNormals.getItem(0));
-	Vertex* targetNormal = currentMountsNormal[0];
+	// Rotate the object to attach it
+	Vertex objectNormal = (*currentConnection).getMountingNormal(0);
+	Vertex* targetNormal =  (*currentConnection).getCurrentMountsNormal(0);
 	Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
 		
 	float cosine = objectNormal.dotProduct(targetNormalReversed);
@@ -217,8 +233,8 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		rotate(angle, axis);
 	}
 		
-	Vertex objectNormalPerp = (*mountingNormalPerps.getItem(0));
-	Vertex* targetNormalPerp = currentMountsPerp[0];
+	Vertex objectNormalPerp = (*currentConnection).getMountingNormalPerp(0);
+	Vertex* targetNormalPerp = (*currentConnection).getCurrentMountsPerp(0); 
 	Vertex targetPerpReversed = Vertex((*targetNormalPerp).getX()*-1.0f, (*targetNormalPerp).getY()*-1.0f, (*targetNormalPerp).getZ()*-1.0f);
 
 	float angle2;
@@ -231,8 +247,9 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		rotate(angle2, axis2);
 	}
 
-	Vertex objectPosition = mountingPoints[0] + getPosition();
-	Vertex targetPosition = (*currentMounts[0]) + (*target).getPosition();
+	//translate the object into position
+	Vertex objectPosition = (*currentConnection).getMountingPoint(0) + getPosition();
+	Vertex targetPosition = *(*currentConnection).getCorrectMount(0) + (*target).getPosition();
 	adjustPosition(targetPosition.getX() - objectPosition.getX(), targetPosition.getY() - objectPosition.getY(), targetPosition.getZ() - objectPosition.getZ());
 
 	return true;
@@ -246,37 +263,43 @@ void MechanicalObject::drawMountingMarkers()
 	for(int i = 0; i < 3 ; i++)
 		rotMatrix[i] = new GLfloat[3];
 
-	for(int i = 0; i < mountingPoints.getNoItems(); i++)
+	for(int b = 0; b < connections.getNoItems(); b++)
 	{
-		GLfloat angle = acos(markerNormal.dotProduct(mountingNormals[i]));
-		Vertex axis = markerNormal.crossProduct(mountingNormals[i]);
-		Vertex translate = (*this).getPosition() + mountingPoints[i];
+		for(int i = 0; i < (*connections.getItem(b)).getNoMountingPoints(); i++)
+		{
+			Connections * currentConnection = connections.getItem(b);
+			Vertex currentNormal = (*currentConnection).getMountingNormal(i);
+			Vertex currentPoint =  (*currentConnection).getMountingPoint(i);
 
-		if(axis.length() < 0.00005f)
-			axis = Vertex(1.0f,0.0f,0.0f);
+			GLfloat angle = acos(markerNormal.dotProduct(currentNormal));
+			Vertex axis = markerNormal.crossProduct(currentNormal);
+			Vertex translate = (*this).getPosition() + currentPoint;
 
-		axis.normalize();
-		generateRotateMatrix(angle ,axis,rotMatrix);
+			if(axis.length() < 0.00005f)
+				axis = Vertex(1.0f,0.0f,0.0f);
 
-		runRotation(rotMatrix,1,&markerNormal);
-		(*mountingMarker).rotate(angle ,axis);
+			axis.normalize();
+			generateRotateMatrix(angle ,axis,rotMatrix);
+
+			runRotation(rotMatrix,1,&markerNormal);
+			(*mountingMarker).rotate(angle ,axis);
 		
-		(*mountingMarker).adjustPosition(translate.getX(),
+			(*mountingMarker).adjustPosition(translate.getX(),
 										 translate.getY(),
 										 translate.getZ());
 
-		(*mountingMarker).draw();
+			(*mountingMarker).draw();
 
-		(*mountingMarker).adjustPosition(-translate.getX(),
+			(*mountingMarker).adjustPosition(-translate.getX(),
 										 -translate.getY(),
 										 -translate.getZ());
 
-		(*mountingMarker).rotate(-angle ,axis);
+			(*mountingMarker).rotate(-angle ,axis);
 
-		generateRotateMatrix(-angle ,axis,rotMatrix);
-		runRotation(rotMatrix,1,&markerNormal);
+			generateRotateMatrix(-angle ,axis,rotMatrix);
+			runRotation(rotMatrix,1,&markerNormal);
+		}
 	}
-
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
 
@@ -284,21 +307,55 @@ void MechanicalObject::drawMountingMarkers()
 }
 bool MechanicalObject::isConnected()
 {
-	for(int i = 0; i < correctMounts.getNoItems(); i++)
+	#define ALL_CONNECTIONS_I int i = 0; i < getNoConnections(); i++
+
+	for(ALL_CONNECTIONS_I)
 	{
-		if(correctMounts[i] != nullptr)
+		if(isConnected(i))
 			return true;
 	}
 
 	return false;
 }
+bool MechanicalObject::isCompletelyConnected()
+{
+	#define ALL_CONNECTIONS_I int i = 0; i < getNoConnections(); i++
+
+	for(ALL_CONNECTIONS_I)
+	{
+		if(!isConnected(i))
+			return false;
+	}
+
+	return true;
+}
+bool MechanicalObject::isConnected(int connectionIndex)
+{
+	#define ALL_CORRECT_MOUNTS_I int i = 0; i < (*connections.getItem(connectionIndex)).getNoMountingPoints(); i++
+
+	if(connectionIndex >= connections.getNoItems() || connectionIndex < 0)
+		return false;
+
+	Connections* currentConnection = connections.getItem(connectionIndex);
+	for(ALL_CORRECT_MOUNTS_I)
+	{
+		if((*currentConnection).getCorrectMount(i) == nullptr)
+			return false;
+	}
+	return true;
+}
 void MechanicalObject::disconect()
 {
-	for(int i = 0; i < currentMounts.getNoItems(); i++)
+	#define ALL_CONNECTIONS_I int i = 0; i < getNoConnections(); i++
+	#define ALL_CORRECT_MOUNTS_B int b = 0; b < (*connections.getItem(i)).getNoMountingPoints(); b++
+	
+	for(ALL_CONNECTIONS_I)
 	{
-		currentMounts[i] = nullptr;
+		Connections* currentConnection = connections.getItem(i);
+
+		for(ALL_CORRECT_MOUNTS_B)
+			(*currentConnection).setCurrentMount(nullptr,b);
 	}
-	connectedCorrect = false;
 }
 
 void MechanicalObject::rotateX(GLfloat rad)
@@ -319,9 +376,15 @@ void MechanicalObject::rotateX(GLfloat rad)
 		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
 	}
 
-	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
-	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
-	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
+	for(int i = 0; i < connections.getNoItems(); i++)
+	{
+		Connections* currentConnection = connections.getItem(i);
+		int noPoints = (*currentConnection).getNoMountingPoints();
+
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingPointPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPerpPtr(0));
+	}
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -346,9 +409,15 @@ void MechanicalObject::rotateY(GLfloat rad)
 		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
 	}
 
-	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
-	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
-	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
+	for(int i = 0; i < connections.getNoItems(); i++)
+	{
+		Connections* currentConnection = connections.getItem(i);
+		int noPoints = (*currentConnection).getNoMountingPoints();
+
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingPointPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPerpPtr(0));
+	}
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -373,9 +442,15 @@ void MechanicalObject::rotateZ(GLfloat rad)
 		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
 	}
 
-	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
-	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
-	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
+	for(int i = 0; i < connections.getNoItems(); i++)
+	{
+		Connections* currentConnection = connections.getItem(i);
+		int noPoints = (*currentConnection).getNoMountingPoints();
+
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingPointPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPerpPtr(0));
+	}
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -401,9 +476,15 @@ void MechanicalObject::rotate(GLfloat rad, Vertex axis)
 		(*visualData.getItem(i)).setPosition(temp.getX(),temp.getY(),temp.getZ());
 	}
 
-	runRotation(rotMatrix,mountingPoints.getNoItems(),mountingPoints.getDataPtr());
-	runRotation(rotMatrix,mountingNormals.getNoItems(),mountingNormals.getDataPtr());
-	runRotation(rotMatrix,mountingNormalPerps.getNoItems(),mountingNormalPerps.getDataPtr());
+	for(int i = 0; i < connections.getNoItems(); i++)
+	{
+		Connections* currentConnection = connections.getItem(i);
+		int noPoints = (*currentConnection).getNoMountingPoints();
+
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingPointPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPtr(0));
+		runRotation(rotMatrix,noPoints,(*currentConnection).getMountingNormalPerpPtr(0));
+	}
 
 	for(int i = 0; i < 3; i++)
 		delete rotMatrix[i];
@@ -423,17 +504,10 @@ MechanicalObject& MechanicalObject::operator=(const MechanicalObject& rhs)
 	(*this).visualData = rhs.visualData;
 	(*this).forces = rhs.forces;
 
-	(*this).mountingPoints = rhs.mountingPoints;
-	(*this).mountingNormals = rhs.mountingNormals;
-	(*this).mountingNormalPerps = rhs.mountingNormalPerps;
-	(*this).correctMounts = rhs.correctMounts;
-	(*this).currentMounts = rhs.currentMounts;
-	(*this).currentMountsNormal = rhs.currentMountsNormal;
-	(*this).currentMountsPerp = rhs.currentMountsPerp;
-	(*this).gameObjectType = rhs.gameObjectType;
+	(*this).connections = rhs.connections;
 	(*this).name = rhs.name;
-
-
+	(*this).gameObjectType = rhs.gameObjectType;
+	(*this).connectedCorrect = rhs.connectedCorrect;
 
 	return *this;
 }

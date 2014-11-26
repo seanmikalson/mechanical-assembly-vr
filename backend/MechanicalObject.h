@@ -1,12 +1,11 @@
-#include "GameObject.h"
+#include "Connections.h"
 #include <string>
 
 class MechanicalObject EXTENDS GameObject
 {
 	protected:
+		List<Connections> connections;
 		std::string name;
-		List<Vertex> mountingPoints, mountingNormals, mountingNormalPerps;
-		List<Vertex*> correctMounts, currentMounts, currentMountsPerp, currentMountsNormal;
 		bool connectedCorrect;
 
 	public:
@@ -16,41 +15,46 @@ class MechanicalObject EXTENDS GameObject
 		// Constructors 
 		//-------------------------------------
 		MechanicalObject();
-		MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noPoints);
+		MechanicalObject(Vertex nPosition,int visSize,int forceSize,int noConnections);
 		MechanicalObject(const MechanicalObject& rhs);
 
 		//-------------------------------------
 		// Get Functions 
 		//-------------------------------------
-		Vertex getMountingPointWorldPosition(int index);
-		Vertex getMountingPoint(int index);
-		Vertex* getMountingPointPtr(int index);
-		Vertex* getMountingPointNormalPtr(int index);
-		Vertex* getMountingPointNormalPerpPtr(int index);
-		Vertex* getCorrectMount(int index);
-		Vertex* getCurrentMount(int index);
+		Vertex getMountingPointWorldPosition(int pointindex, int connectionIndex);
+		Vertex getMountingPoint(int pointIndex, int connectionIndex);
+		Vertex* getMountingPointPtr(int pointIndex, int connectionIndex);
+		Vertex* getMountingPointNormalPtr(int pointIndex, int connectionIndex);
+		Vertex* getMountingPointNormalPerpPtr(int pointIndex, int connectionIndex);
+		Vertex* getCorrectMount(int pointIndex, int connectionIndex);
+		Vertex* getCurrentMount(int pointIndex, int connectionIndex);
 		std::string getName(){return name;};
-		int getNoMountingPoints(){return mountingPoints.getNoItems();};
+		int getNoMountingPoints(int index){return (*(*connections.getItem(index)).getMountingPoints()).getNoItems();};
+		int getNoConnections(){return connections.getNoItems();};
 
 		//-------------------------------------
 		// Set Functions
 		//-------------------------------------
-		bool setCorrectMount(int index, Vertex* correct);
-		bool setCurrentMount(int index, Vertex* current);
-		bool setPoint(int index, Vertex point);
-		bool setNormal(int index, Vertex normal);
+		bool setCorrectMount(int pointIndex, int connectionIndex, Vertex* correct);
+		bool setCurrentMount(int pointIndex, int connectionIndex, Vertex* current);
+		bool setPoint(int pointIndex, int connectionIndex, Vertex point);
+		bool setNormal(int pointIndex, int connectionIndex, Vertex normal);
 		void setName(std::string name){(*this).name = name;};
 	
 		//-------------------------------------
 		// Class Specific Functions
 		//-------------------------------------
-		bool isCorrectMount(int index, Vertex* target);
-		void addMountingPoint(Vertex point, Vertex normal, Vertex* correct);
+		bool isCorrectMount(int pointIndex, int connectionIndex, Vertex* target);
+		void addMountingPoint(int connectionIndex, Vertex point, Vertex normal);
 		bool isConnectedCorrectly();
 		bool connectTo(MechanicalObject* target, GLfloat threshold);
 		bool isConnected();
+		bool isConnected(int connectionIndex);
+		bool isCompletelyConnected();
 		void disconect();
 		void drawMountingMarkers();
+		bool canConnectToConnection(MechanicalObject* target, int tgtConnection, int thisConnection);
+		bool canConnectTo(MechanicalObject* target, int* tgtIndex, int* thisIndex);
 
 		void rotateX(GLfloat rad);
 		void rotateY(GLfloat rad);

@@ -29,24 +29,15 @@ BoundingVolume::BoundingVolume()
 	Material* Blue = new Material(blueamb,blueamb,nothing,0.0f);
 	Material* roof = new Material(ambwht,ambwht,nothing,0.0f);
 
-	//gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,5.0f,-10.0f,Blue));
-	//(*gameObjects[0]).rotateZ(180.0f * DEGREES_TO_RAD);
-   // gameObjects.addItem(new Cube(new Vertex(4.0f,4.0f,4.0f),0.0f,-5.0f,-10.0f,Red));
-	//setup engine
+
 	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
-	gameObjects.addItem(new EngineHead(2.0f,13.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(new EngineHead(2.0f,5.0f,0.0f,-10.0f,Grey));
+
 	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],0);
 	MechanicalObject tempm;
 	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
 	tempm.markerNormal = Vertex(0.0f,1.0f,0.0f);
 	
-	(*gameObjects[1]).rotateZ(-45.0f * DEGREES_TO_RAD);
-
-	Vertex movement = ((*(*(*gameObjects[0]).getVisualData(0)).getVertex(0)) + (*gameObjects[0]).getPosition() + (*(*gameObjects[0]).getVisualData(0)).getPosition()) - 
-		((*(*(*gameObjects[1]).getVisualData(0)).getVertex(0)) + (*gameObjects[1]).getPosition() + (*(*gameObjects[1]).getVisualData(0)).getPosition());
-	
-	(*gameObjects[1]).adjustPosition(1.0f * movement.getX(),1.0f,0.0f);
-
 	
 	//setup room
 	List<Material> temp = List<Material>();
