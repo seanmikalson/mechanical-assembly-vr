@@ -226,11 +226,13 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
   			{
   				MechanicalObject* obj = (MechanicalObject*)boundingVolume.getGameObject(i);
  				MechanicalObject* target = (MechanicalObject*)boundingVolume.getGameObject(j);
-				(*obj).disconect();
-				(*target).disconect();
+				
+					(*obj).disconect();
+				    (*target).disconect();
 				if(i!=j)
 				{
 					if((*obj).connectTo(target,2.0f)) break;
+					
 				}
 			}
 		}
@@ -264,6 +266,8 @@ int main(int argc, char **argv)
     // initialize global variables
     initSharedMem();
 	boundingVolume = BoundingVolume();
+	(*(EngineHead*)boundingVolume.getGameObject(1)).setupCorrectMountingPoints((EngineBlock*)boundingVolume.getGameObject(0),0);
+	MechanicalObject tempm;
 
 	// set initial color of teapot
 	for (int i=0; i<colorIndex; i++){
