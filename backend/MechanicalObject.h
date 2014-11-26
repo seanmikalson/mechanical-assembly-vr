@@ -40,6 +40,7 @@ class MechanicalObject EXTENDS GameObject
 		bool setPoint(int pointIndex, int connectionIndex, Vertex point);
 		bool setNormal(int pointIndex, int connectionIndex, Vertex normal);
 		void setName(std::string name){(*this).name = name;};
+		void setConnectedCorrectly(bool connected){connectedCorrect =  true;};
 	
 		//-------------------------------------
 		// Class Specific Functions

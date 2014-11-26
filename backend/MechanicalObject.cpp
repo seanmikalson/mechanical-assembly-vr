@@ -215,6 +215,7 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	}
 
 	connectedCorrect = true;
+	(*target).setConnectedCorrectly(true);
 
 	float angle;
 	Vertex axis;
@@ -349,6 +350,7 @@ void MechanicalObject::disconect()
 	#define ALL_CONNECTIONS_I int i = 0; i < getNoConnections(); i++
 	#define ALL_CORRECT_MOUNTS_B int b = 0; b < (*connections.getItem(i)).getNoMountingPoints(); b++
 	
+	connectedCorrect = false;
 	for(ALL_CONNECTIONS_I)
 	{
 		Connections* currentConnection = connections.getItem(i);
