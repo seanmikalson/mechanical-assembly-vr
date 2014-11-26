@@ -173,6 +173,7 @@ GLfloat correctlightKd[] = {0.0f, 0.7f, 0.0f, 0.0f};  // diffuse light
 GLfloat correctlightKs[] = {0, 1, 0, 0};           // specular light
 
 Timer placedTimer;
+stringstream grabbedObjectName;
 
 // haptic callback
 #ifdef HAPTIC
@@ -184,12 +185,17 @@ void HLCALLBACK touchShapeCallback(HLenum event, HLuint object, HLenum thread,
                                    HLcache *cache, void *userdata)
 {
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(true);
+	grabbedObjectName << (*(MechanicalObject*)boundingVolume.getGameObjectFromId(object)).getName();
 }
 
 void HLCALLBACK untouchShapeCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
 	(*boundingVolume.getGameObjectFromId(object)).setTouched(false);
+	if(!(*boundingVolume.getGameObjectFromId(object)).isGrabbed())
+	{
+		grabbedObjectName.str("");
+	}
 }
 
 void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread, 
@@ -201,7 +207,8 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 		if((*boundingVolume.getGameObject(i)).isTouched())
 		{
 			(*boundingVolume.getGameObject(i)).setGrabbed(true);
-
+			grabbedObjectName.str("");
+			grabbedObjectName << (*(MechanicalObject*)boundingVolume.getGameObject(i)).getName();
 			HLdouble grabbedProxy[3];
 			hlGetDoublev(HL_PROXY_POSITION, grabbedProxy);
 			proxyObjectDiff[0] = (*boundingVolume.getGameObject(i)).getPosition().getX() - grabbedProxy[0];
@@ -214,6 +221,7 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread, 
                                    HLcache *cache, void *userdata)
 {
+	grabbedObjectName.str("");
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
 		if((*boundingVolume.getGameObject(i)).isGrabbed())
@@ -518,32 +526,13 @@ void showInfo()
     drawString(ss.str().c_str(), 1, 286, color, font);
     ss.str("");
 
-    // display elapsed time in millisec
-    ss << "Time: " << timer.getElapsedTimeInMilliSec() << " ms" << ends;
-    drawString(ss.str().c_str(), 1, 272, color, font);
-    ss.str("");
-
-	#ifdef HAPTIC
-	HLdouble proxyPos[3];
-	hlGetDoublev(HL_PROXY_POSITION, proxyPos);
-
-	ss << "haptic: " << proxyPos[0] << ", " << proxyPos[1] << ", " <<proxyPos[2] << ends;
-    drawString(ss.str().c_str(), 1, 258, color, font);
-    ss.str("");
-	#endif
-
-	ss << "camera X: " << cameraAngleX << ends;
-    drawString(ss.str().c_str(), 1, 244, color, font);
-    ss.str("");
-
-	ss << "camera Y: " << cameraAngleY << ends;
-    drawString(ss.str().c_str(), 1, 230, color, font);
-    ss.str("");
-
-	float cameraObject=abs(cameraDistance-10);
-	ss << "camera-object distance: " << cameraObject << ends;
-    drawString(ss.str().c_str(), 1, 216, color, font);
-    ss.str("");
+	if(grabbedObjectName.str() != "")
+	{
+		float objectNameColour[4] = {1, 0, 0, 1};
+		ss << "object: " << grabbedObjectName.str() << ends;
+		drawString(ss.str().c_str(), 1,240, objectNameColour, font);
+		ss.str("");
+	}
 
     ss << "Press SPACE key to toggle stereo mode." << ends;
     drawString(ss.str().c_str(), 1, 1, color, font);

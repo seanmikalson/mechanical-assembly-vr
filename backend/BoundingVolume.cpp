@@ -32,7 +32,9 @@ BoundingVolume::BoundingVolume()
 
 	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
 	gameObjects.addItem(new EngineHead(2.0f,5.0f,0.0f,-10.0f,Grey));
-
+	
+	(*(EngineBlock*)gameObjects[0]).setName("Engine Block");
+	(*(EngineHead*)gameObjects[1]).setName("Engine Head 1");
 	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],0);
 	MechanicalObject tempm;
 	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
@@ -89,7 +91,7 @@ void BoundingVolume::draw()
 
 	for(ALL_OBJECTS)
 	{
-		if((*gameObjects[i]).getType() == Mechanical)
+		if((*gameObjects[i]).getType() == Mechanical && !(* (MechanicalObject*) gameObjects[i]).isConnectedCorrectly())
 			(* (MechanicalObject*) gameObjects[i]).drawMountingMarkers();
 	}
 }
