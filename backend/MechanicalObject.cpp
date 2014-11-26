@@ -226,13 +226,11 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	Vertex targetNormalReversed = Vertex((*targetNormal).getX()*-1.0f, (*targetNormal).getY()*-1.0f, (*targetNormal).getZ()*-1.0f);
 		
 	float cosine = objectNormal.dotProduct(targetNormalReversed);
-	if((cosine <= 0.999999 || cosine >= 1.000001) && (cosine <= -0.999999 || cosine >= -1.000001))
-	{
-		angle = acosf(cosine);
-
-		axis = objectNormal.crossProduct(targetNormalReversed);
-		rotate(angle, axis);
-	}
+	printf("cosine: %f\n", cosine);
+	angle = acosf(cosine);
+	axis = objectNormal.crossProduct(targetNormalReversed);
+	printf("axis: %f,%f,%f\n", axis.getX(),axis.getY(),axis.getZ());
+	if(axis.length() > 0.0005 && (angle > 0.01)) rotate(angle, axis);
 		
 	Vertex objectNormalPerp = (*currentConnection).getMountingNormalPerp(0);
 	Vertex* targetNormalPerp = (*currentConnection).getCurrentMountsPerp(0); 
@@ -240,13 +238,11 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 
 	float angle2;
 	float cosine2 = objectNormalPerp.dotProduct(targetPerpReversed);
-	if((cosine2 <= 0.9999999 || cosine2 >= 1.00000001) && (cosine2 <= -0.99999999 || cosine2 >= -1.000000001))
-	{
-		angle2 = acosf(cosine2);
-
-		Vertex axis2 = objectNormalPerp.crossProduct(targetPerpReversed);
-		rotate(angle2, axis2);
-	}
+	printf("cosine2: %f\n", cosine2);
+	angle2 = acosf(cosine2);
+	Vertex axis2 = objectNormalPerp.crossProduct(targetPerpReversed);
+	printf("axis2: %f,%f,%f    %d\n", axis2.getX(),axis2.getY(),axis2.getZ(), axis2.length() > 0.0005);
+	if(axis2.length() > 0.0005 && (angle2 > 0.01) ) rotate(angle2, axis2);
 
 	//translate the object into position
 	Vertex objectPosition = (*currentConnection).getMountingPoint(0) + getPosition();
@@ -276,14 +272,17 @@ void MechanicalObject::drawMountingMarkers()
 			Vertex axis = markerNormal.crossProduct(currentNormal);
 			Vertex translate = (*this).getPosition() + currentPoint;
 
-			if(axis.length() < 0.00005f)
-				axis = Vertex(1.0f,0.0f,0.0f);
+			printf("angle: %f\n",angle);
+			if(angle < 3.15 && angle > 3.14)
+					axis = Vertex(1.0, 0, 0);
 
-			axis.normalize();
-			generateRotateMatrix(angle ,axis,rotMatrix);
+			if(axis.length() > 0.0005f && abs(angle) > 0.01)
+			{
+				generateRotateMatrix(angle ,axis,rotMatrix);
 
-			runRotation(rotMatrix,1,&markerNormal);
-			(*mountingMarker).rotate(angle ,axis);
+				runRotation(rotMatrix,1,&markerNormal);
+				(*mountingMarker).rotate(angle ,axis);
+			}
 		
 			(*mountingMarker).adjustPosition(translate.getX(),
 										 translate.getY(),
@@ -295,10 +294,13 @@ void MechanicalObject::drawMountingMarkers()
 										 -translate.getY(),
 										 -translate.getZ());
 
-			(*mountingMarker).rotate(-angle ,axis);
+			if(axis.length() > 0.0005f && abs(angle) > 0.01)
+			{
+				(*mountingMarker).rotate(-angle ,axis);
 
-			generateRotateMatrix(-angle ,axis,rotMatrix);
-			runRotation(rotMatrix,1,&markerNormal);
+				generateRotateMatrix(-angle ,axis,rotMatrix);
+				runRotation(rotMatrix,1,&markerNormal);
+			}
 		}
 	}
 	for(int i = 0; i < 3; i++)
