@@ -214,6 +214,7 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		(*target).setCurrentMount(i,tgtConnectionIndex,(*currentConnection).getMountingPointPtr(i));
 	}
 
+	//connections.removeItem(connectionIndex);
 	connectedCorrect = true;
 	(*target).setConnectedCorrectly(true);
 
@@ -262,7 +263,7 @@ void MechanicalObject::drawMountingMarkers()
 
 	for(int b = 0; b < connections.getNoItems(); b++)
 	{
-		for(int i = 0; i < (*connections.getItem(b)).getNoMountingPoints(); i++)
+		for(int i = 0; i < (*connections.getItem(b)).getNoMountingPoints() && !isConnected(b); i++)
 		{
 			Connections * currentConnection = connections.getItem(b);
 			Vertex currentNormal = (*currentConnection).getMountingNormal(i);
@@ -342,7 +343,7 @@ bool MechanicalObject::isConnected(int connectionIndex)
 	Connections* currentConnection = connections.getItem(connectionIndex);
 	for(ALL_CORRECT_MOUNTS_I)
 	{
-		if((*currentConnection).getCorrectMount(i) == nullptr)
+		if((*currentConnection).getCurrentMount(i) == nullptr)
 			return false;
 	}
 	return true;
