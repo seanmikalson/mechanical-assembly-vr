@@ -99,7 +99,7 @@ void BoundingVolume::draw()
 
 	for(ALL_OBJECTS)
 	{
-		if((*gameObjects[i]).getType() == Mechanical && !(* (MechanicalObject*) gameObjects[i]).isConnectedCorrectly())
+		if((*gameObjects[i]).getType() == Mechanical)
 			(* (MechanicalObject*) gameObjects[i]).drawMountingMarkers();
 	}
 }
