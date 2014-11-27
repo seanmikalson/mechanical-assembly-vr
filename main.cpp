@@ -204,7 +204,7 @@ void HLCALLBACK button1DownCallback(HLenum event, HLuint object, HLenum thread,
 	printf("button 1 pressed %d\n",object);
 	for(int i = 0; i < boundingVolume.getNoItems(); i++)
 	{
-		if((*boundingVolume.getGameObject(i)).isTouched())
+		if((*boundingVolume.getGameObject(i)).isTouched() && !(*(MechanicalObject*)boundingVolume.getGameObject(i)).isConnectedCorrectly())
 		{
 			(*boundingVolume.getGameObject(i)).setGrabbed(true);
 			grabbedObjectName.str("");
