@@ -174,6 +174,7 @@ GLfloat correctlightKs[] = {0, 1, 0, 0};           // specular light
 
 Timer placedTimer;
 stringstream grabbedObjectName;
+int currentObject = 1;
 
 // haptic callback
 #ifdef HAPTIC
@@ -237,8 +238,11 @@ void HLCALLBACK button1UpCallback(HLenum event, HLuint object, HLenum thread,
 
 				if(i!=j)
 				{
-					if((*obj).connectTo(target,2.0f)) break;
-					
+					if((*obj).connectTo(target,2.0f))
+					{
+						currentObject++;
+						break;		
+					}
 				}
 			}
 		}
@@ -516,6 +520,7 @@ void showInfo()
     gluOrtho2D(0, 400, 0, 300);  // set to orthogonal projection
 
     float color[4] = {1, 1, 1, 1};
+	float objectNameColour[4] = {1, 0, 0, 1};
 
     stringstream ss;
     ss << std::fixed << std::setprecision(3);
@@ -526,8 +531,20 @@ void showInfo()
 
 	if(grabbedObjectName.str() != "")
 	{
-		float objectNameColour[4] = {1, 0, 0, 1};
 		ss << "object: " << grabbedObjectName.str() << ends;
+		drawString(ss.str().c_str(), 1,220, objectNameColour, font);
+		ss.str("");
+	}
+
+	if(currentObject < boundingVolume.getNoItems()-1)
+	{
+		ss << "Please place " << (*(MechanicalObject*)boundingVolume.getGameObject(currentObject)).getName() << " in the correct location" << ends;
+		drawString(ss.str().c_str(), 1,240, objectNameColour, font);
+		ss.str("");
+	}
+	else
+	{
+		ss << "Good Work!" << ends;
 		drawString(ss.str().c_str(), 1,240, objectNameColour, font);
 		ss.str("");
 	}
