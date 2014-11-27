@@ -32,10 +32,14 @@ BoundingVolume::BoundingVolume()
 
 	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
 	gameObjects.addItem(new EngineHead(2.0f,5.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(new EngineHead(2.0f,-5.0f,0.0f,-10.0f,Grey));
 	
 	(*(EngineBlock*)gameObjects[0]).setName("Engine Block");
-	(*(EngineHead*)gameObjects[1]).setName("Engine Head 1");
+	(*(EngineHead*)gameObjects[1]).setName("Engine Head Right");
+	(*(EngineHead*)gameObjects[2]).setName("Engine Head Left");
+
 	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],0);
+	(*(EngineHead*)gameObjects[2]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],1);
 	MechanicalObject tempm;
 	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
 	tempm.markerNormal = Vertex(0.0f,1.0f,0.0f);
@@ -48,6 +52,10 @@ BoundingVolume::BoundingVolume()
 	temp.addItem(*Tan);
 	gameObjects.addItem(new WorkShop(30.0f,0.0f,0.0f,0.0f,temp));
 
+	for(int i = 0; i < gameObjects.getNoItems(); i++)
+	{
+		(*gameObjects[i]).rotateX(30 * DEGREES_TO_RAD);
+	}
 	//setup table
 	//Vertex cubeScale = Vertex(20.0f,4.0f,20.0f);
 	//gameObjects.addItem(Cube(&cubeScale,0.0f,0.0f,10.0f,Purple));

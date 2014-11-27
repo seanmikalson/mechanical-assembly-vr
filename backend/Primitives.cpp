@@ -95,21 +95,21 @@ EngineHead::EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat disp
 
 	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale * 0.95f),Vertex(0.0f,-1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f),Vertex(0.0f,-1.0f,0.0f));
-
 	 addMountingPoint(0,Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f),Vertex(0.0f,-1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, 0.0f),Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, Scale / 2.0f),Vertex(0.0f,-1.0f,0.0f));
 
 	 addMountingPoint(0,Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, 0.0f),Vertex(0.0f,-1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, 0.0f),Vertex(0.0f,-1.0f,0.0f));
 
-	addMountingPoint(0,Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f));
+	 addMountingPoint(0,Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale),Vertex(0.0f,-1.0f,0.0f));
+	addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.5f *Scale),Vertex(0.0f,-1.0f,0.0f));
 
 	 addMountingPoint(0,Vertex(NegPointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale),Vertex(0.0f,-1.0f,0.0f));
+
+	 addMountingPoint(0,Vertex(PointFive * 0.35f,NegPointFive / 4.0f, -0.95 *Scale),Vertex(0.0f,-1.0f,0.0f));
 
 	 visualData[0].addVertex(0.5f *NegPointFive, NegPointFive / 4.0f, 2 * PointFive);
 	 visualData[0].addVertex(0.5f *PointFive, NegPointFive / 4.0f, 2 * PointFive);
@@ -309,15 +309,28 @@ EngineHead::EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat disp
 }
 void EngineHead::setupCorrectMountingPoints(EngineBlock* engineBlock, int side)
 {
-	//Left side = 0
-	side *= 10;
-	for(int i = side; i < side + 10; i++)
+	if(side ==0)
 	{
-		(*engineBlock).setCorrectMount(i,0, (*connections.getItem(0)).getMountingPointPtr(i) );
-		(*this).setCorrectMount(i,0,(*engineBlock).getMountingPointPtr(i,0));
-	}	
+		for(int i = 0; i < 10; i++)
+		{
+			(*engineBlock).setCorrectMount(i,side, (*connections.getItem(0)).getMountingPointPtr(i) );
+			(*this).setCorrectMount(i,0,(*engineBlock).getMountingPointPtr(i,side));
+		}	
+	}
+	else
+	{
+		for(int i = 0; i < 10; i+=2)
+		{
+			(*engineBlock).setCorrectMount(i+ 1,side, (*connections.getItem(0)).getMountingPointPtr(i) );
+			(*this).setCorrectMount(i,0,(*engineBlock).getMountingPointPtr(i+1,side));
+			(*engineBlock).setCorrectMount(i,side, (*connections.getItem(0)).getMountingPointPtr(i+1) );
+			(*this).setCorrectMount(i+1,0,(*engineBlock).getMountingPointPtr(i,side));
+		}
+
+
+	}
 }
-EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),14,10,1)
+EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),14,10,3)
 {
 	 int cylinderSize = 32;
 	 for(int i = 0; i < 8; i++)
@@ -349,21 +362,21 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 
 	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, Scale * 0.9f),Vertex(0.0f,1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, 0.0f),Vertex(0.0f,1.0f,0.0f));
-
 	 addMountingPoint(0,Vertex(NegPointFive * 0.7f,0.0f, 0.0f),Vertex(0.0f,1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -Scale),Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, 0.0f),Vertex(0.0f,1.0f,0.0f));
 
 	 addMountingPoint(0,Vertex(NegPointFive * 0.7f,0.0f, -Scale),Vertex(0.0f,1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -2 *Scale),Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -Scale),Vertex(0.0f,1.0f,0.0f));
 
 	 addMountingPoint(0,Vertex(NegPointFive * 0.7f,0.0f, -2 *Scale),Vertex(0.0f,1.0f,0.0f));
 
-	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -2.9 *Scale),Vertex(0.0f,1.0f,0.0f));
+	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -2 *Scale),Vertex(0.0f,1.0f,0.0f));
 
 	 addMountingPoint(0,Vertex(NegPointFive * 0.7f,0.0f, -2.9 *Scale),Vertex(0.0f,1.0f,0.0f));
+
+	 addMountingPoint(0,Vertex(PointFive * 0.7f,0.0f, -2.9 *Scale),Vertex(0.0f,1.0f,0.0f));
 
 	 GLfloat** rotMatrix = new GLfloat*[3];
 		for(int i = 0; i < 3 ; i++)
@@ -381,18 +394,17 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 
 		delete []rotMatrix;
 
-		/*
+		connections.addItem(Connections(10));
 		for(int i = 0; i < 10; i++)
 		{
-			Vertex tmoun = mountingPoints[i];
-			Vertex tnorm = mountingNormals[i];
+			Vertex tmoun = (*connections.getItem(0)).getMountingPoint(i);
+			Vertex tnorm = (*connections.getItem(0)).getMountingNormal(i);
 			tmoun *= Vertex(-1.0f,1.0f,1.0f);
 			tnorm *= Vertex(-1.0f,1.0f,1.0f);
 
-			mountingPoints.addItem(tmoun);
-			mountingNormals.addItem(tnorm);
+			addMountingPoint(1,tmoun,tnorm);
 		}
-	 */
+	 
 	//--------------------------------------------------------------------------
 	// Create Cylinder Sleeves
 	//--------------------------------------------------------------------------
@@ -548,6 +560,22 @@ EngineBlock::EngineBlock(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat di
 		(*visualData.getItem(10)).addVisualTriangle(2,1,3,0,0,0);
 		(*visualData.getItem(10)).setMaterialsForTriangle(1,0,0,0);
 
+		connections.addItem(Connections(4));
+
+		Vertex reference = *visualData[10].getVertex(0);
+
+		reference *= Vertex(0.8f,1.0f,0.9f);
+		addMountingPoint(2,reference,Vertex(0.0f,1.0f,0.0f));
+
+		reference *= Vertex(-1.0f,1.0f,1.0f);
+		addMountingPoint(2,reference,Vertex(0.0f,1.0f,0.0f));
+
+		reference *= Vertex(1.0f,1.0f,-1.0f);
+		addMountingPoint(2,reference,Vertex(0.0f,1.0f,0.0f));
+
+		reference *= Vertex(-1.0f,1.0f,1.0f);
+		addMountingPoint(2,reference,Vertex(0.0f,1.0f,0.0f));
+		
 		//--------------------------------------------------------------------------
 		// Setup Lower Sides
 		//--------------------------------------------------------------------------
@@ -935,6 +963,15 @@ Marker::Marker(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat disp
 		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,1,0);
 
  }
+IntakeManifold::IntakeManifold(EngineBlock* engineBlock, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material)
+{
+
+}
+void IntakeManifoldsetupCorrectMountingPoints(EngineBlock* engineBlock)
+{
+
+
+}
 /*
  SquarePyramid::SquarePyramid(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* TriColor) : GameObject(dispx,dispy,dispz)
  {

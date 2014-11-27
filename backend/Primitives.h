@@ -19,6 +19,11 @@ class EngineHead EXTENDS MechanicalObject{
 		EngineHead(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
 		void setupCorrectMountingPoints(EngineBlock* engineBlock, int side);
 };
+class IntakeManifold EXTENDS MechanicalObject{
+	public:
+		IntakeManifold(EngineBlock* engineBlock, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material);
+		void setupCorrectMountingPoints(EngineBlock* engineBlock);
+};
 class Square EXTENDS GameObject{
 
 	public:
