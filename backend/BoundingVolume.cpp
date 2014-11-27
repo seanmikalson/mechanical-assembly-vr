@@ -23,29 +23,52 @@ BoundingVolume::BoundingVolume()
     Material* Green = new  Material(grnamb,grndiff,nothing,30.0f);
     Material* Purple = new Material(diffPurp,diffPurp,specular,30.0f);
     Material* Tan = new Material(tanamb,tanamb,nothing,0.0f);
-    Material* Grey = new Material(greyamb,greyamb,ambwht,130.0f);
+    Material* Grey = new Material(greyamb,greyamb,specular,80.0f);
 	Material* floor = new Material(greyamb,greyamb,greyamb,10.0f);
 	Material* Red = new Material(redamb,redamb,nothing,.0f);
 	Material* Blue = new Material(blueamb,blueamb,nothing,0.0f);
 	Material* roof = new Material(ambwht,ambwht,nothing,0.0f);
 
-
-	gameObjects.addItem( new EngineBlock(2.0f,0.0f,0.0f,-10.0f,Grey));
-	gameObjects.addItem(new EngineHead(2.0f,5.0f,0.0f,-10.0f,Grey));
-	gameObjects.addItem(new EngineHead(2.0f,-5.0f,0.0f,-10.0f,Grey));
 	
+	//--------------------------------------------------------------------
+	// Setup Objects
+	//--------------------------------------------------------------------
+	gameObjects.addItem( new EngineBlock(2.0f,2.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(new EngineHead(2.0f,-3.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(new EngineHead(2.0f,-6.0f,0.0f,-10.0f,Grey));
+	gameObjects.addItem(new IntakeManifold(2.0f,9.0f,-1.0f,-10.0f,Grey));
+	gameObjects.addItem(new ThrottleBody(2.0f,-4.0f,-3.0f,-5.0f,Grey));
+
+	
+	//--------------------------------------------------------------------
+	// Setup Names
+	//--------------------------------------------------------------------
 	(*(EngineBlock*)gameObjects[0]).setName("Engine Block");
 	(*(EngineHead*)gameObjects[1]).setName("Engine Head Right");
 	(*(EngineHead*)gameObjects[2]).setName("Engine Head Left");
+	(*(IntakeManifold*)gameObjects[3]).setName("Intake Manifold");
+	(*(ThrottleBody*)gameObjects[3]).setName("Throttle Body");
 
+	//--------------------------------------------------------------------
+	// Setup Correct Mounting Points
+	//--------------------------------------------------------------------
 	(*(EngineHead*)gameObjects[1]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],0);
 	(*(EngineHead*)gameObjects[2]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0],1);
+	(*(IntakeManifold*)gameObjects[3]).setupCorrectMountingPoints((EngineBlock*)gameObjects[0]);
+	(*(ThrottleBody*)gameObjects[4]).setupCorrectMountingPoints((IntakeManifold*)gameObjects[3]);
+
+	
+	//-----------------------------------------------------------------------
+	// Setup Marker Display
+	//-----------------------------------------------------------------------
 	MechanicalObject tempm;
 	tempm.mountingMarker = new Marker(16,new Vertex(0.3f,0.3f,0.3f),0.0f,0.0f,0.0f,Purple);
 	tempm.markerNormal = Vertex(0.0f,1.0f,0.0f);
 	
 	
-	//setup room
+	//-----------------------------------------------------------------------
+	// Setup Room
+	//-----------------------------------------------------------------------
 	List<Material> temp = List<Material>();
 	temp.addItem(*floor);
 	temp.addItem(*Tan);
@@ -56,10 +79,6 @@ BoundingVolume::BoundingVolume()
 	{
 		(*gameObjects[i]).rotateX(30 * DEGREES_TO_RAD);
 	}
-	//setup table
-	//Vertex cubeScale = Vertex(20.0f,4.0f,20.0f);
-	//gameObjects.addItem(Cube(&cubeScale,0.0f,0.0f,10.0f,Purple));
-	
 }
 BoundingVolume::~BoundingVolume()
 {
@@ -99,7 +118,7 @@ void BoundingVolume::draw()
 
 	for(ALL_OBJECTS)
 	{
-		if((*gameObjects[i]).getType() == Mechanical)
+		if((*gameObjects[i]).getType() == Mechanical && !(* (MechanicalObject*) gameObjects[i]).isConnectedCorrectly())
 			(* (MechanicalObject*) gameObjects[i]).drawMountingMarkers();
 	}
 }

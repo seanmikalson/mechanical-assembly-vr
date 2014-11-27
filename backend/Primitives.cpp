@@ -963,14 +963,162 @@ Marker::Marker(int sides,Vertex* Scale,GLfloat dispx,GLfloat dispy ,GLfloat disp
 		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1, 0,1,0);
 
  }
-IntakeManifold::IntakeManifold(EngineBlock* engineBlock, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material)
+IntakeManifold::IntakeManifold(GLfloat Scale,GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),10,10,2)
 {
+	Scale /= 2.0f;
+	addVisualData(0.0f,0.0f,0.0f,8,6,12,1);
+	visualData[0].addMaterial(*material);
+
+	Vertex temp = Vertex(1.79289317,0.707106769,4.0000) * Scale;
+	visualData[0].addVertex(temp);
+	
+	temp *= Vertex(-1.0f,1.0f,1.0f);
+	visualData[0].addVertex(temp);
+
+	temp *= Vertex(1.0f,1.0f,-1.0f);
+	visualData[0].addVertex(temp);
+
+	temp*= Vertex(-1.0f,1.0f,1.0f);
+	visualData[0].addVertex(temp);
+
+	//bottom
+	visualData[0].addNormal(0.0f,-1.0f,0.0f);
+	visualData[0].addVisualTriangle(1,2,0,0,0,0);
+	visualData[0].setMaterialsForTriangle(0,0,0,0);
+	visualData[0].addVisualTriangle(0,2,3,0,0,0);
+	visualData[0].setMaterialsForTriangle(1,0,0,0);
+
+	
+	temp = Vertex(2.64142132,1.27279222,3.59999990) * Scale;
+	visualData[0].addVertex(temp);
+
+	temp *= Vertex(-1.0f,1.0f,1.0f);
+	visualData[0].addVertex(temp);
+	
+	temp *= Vertex(1.0f,1.0f,-1.0f);
+	visualData[0].addVertex(temp);
+
+	temp *= Vertex(-1.0f,1.0f,1.0f);
+	visualData[0].addVertex(temp);
+
+	for(int i = 0; i < 3; i++)
+	{
+		visualData[0].addNormal(0.0f,-1.0f,0.0f);
+		visualData[0].addVisualTriangle(1 + i,0 + i,4 + i,1 + i,1 + i,1 + i);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+		(*visualData[0].getVisualTriangle(visualData[0].getNoTriangles() - 1)).generateNormal();
+
+		visualData[0].addVisualTriangle(1 + i,4 + i,5 + i,1 + i,1 +i ,1 + i);
+		visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+	}
+
+	visualData[0].addNormal(0.0f,-1.0f,0.0f);
+	visualData[0].addVisualTriangle(0,3,7,4,4,4);
+	visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+	(*visualData[0].getVisualTriangle(visualData[0].getNoTriangles() - 1)).generateNormal();
+
+	visualData[0].addVisualTriangle(0,7,4,4,4 ,4);
+	visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+
+	visualData[0].addNormal(0.0f,1.0f,0.0f);
+	visualData[0].addVisualTriangle(4,6,5,5,5,5);
+	visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+
+	visualData[0].addVisualTriangle(4,7,6,5,5,5);
+	visualData[0].setMaterialsForTriangle(visualData[0].getNoTriangles() - 1,0,0,0);
+	//-----------------------------------------------------------
+	// Add bottom mounting points
+	//-----------------------------------------------------------
+	connections.addItem(Connections(4));
+	Vertex mountTemp = Vertex(1.79289317,0.707106769,4.0000) * Scale;
+
+	mountTemp *= Vertex(0.8f,1.0f,0.9f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	mountTemp *= Vertex(1.0f,1.0f,-1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	//-----------------------------------------------------------
+	// Add Top mounting points
+	//-----------------------------------------------------------
+	connections.addItem(Connections(4));
+	mountTemp = Vertex(2.64142132,1.27279222,3.59999990) * Scale;;
+	mountTemp *= Vertex(1.0f /2.64142132f,1.0f,1.0f / 3.59999990f);
+	mountTemp *= Vertex(Scale,1.0f,Scale);
+
+	addMountingPoint(1,mountTemp,Vertex(0.0f,1.0f,0.0f));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(1,mountTemp,(Vertex(0.0f,1.0f,0.0f)));
+
+	mountTemp *= Vertex(1.0f,1.0f,-1.0f);
+	addMountingPoint(1,mountTemp,(Vertex(0.0f,1.0f,0.0f)));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(1,mountTemp,(Vertex(0.0f,1.0f,0.0f)));
+
 
 }
-void IntakeManifoldsetupCorrectMountingPoints(EngineBlock* engineBlock)
+void IntakeManifold::setupCorrectMountingPoints(EngineBlock* engineBlock)
 {
+	for(int i = 0; i < 4; i++)
+	{
+		(*engineBlock).setCorrectMount(i,2,getMountingPointPtr(i,0));
+		setCorrectMount(i,0,(*engineBlock).getMountingPointPtr(i,2));
+	}                                   
+}
+ThrottleBody::ThrottleBody(GLfloat Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* material) : MechanicalObject(Vertex(dispx,dispy,dispz),10,10,1)
+{
+	addVisualData(0.0f,0.0f,0.0f,8,6,12,1);
+	addVisualData(0.0f,0.0f,0.0f,8,6,12,1);
+	visualData[0].addMaterial(*material);
 
+	Scale /= 2.0f;
+	//-----------------------------------------------------------
+	// Add mounting points
+	//-----------------------------------------------------------
+	connections.addItem(Connections(4));
+	Vertex mountTemp = Vertex(2.64142132,-0.125f,3.59999990) * Scale;;
+	mountTemp *= Vertex(1.0f /2.64142132f,1.0f,1.0f / 3.59999990f);
+	mountTemp *= Vertex(Scale,1.0f,Scale);
 
+	addMountingPoint(0,mountTemp,Vertex(0.0f,-1.0f,0.0f));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	mountTemp *= Vertex(1.0f,1.0f,-1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	mountTemp *= Vertex(-1.0f,1.0f,1.0f);
+	addMountingPoint(0,mountTemp,(Vertex(0.0f,-1.0f,0.0f)));
+
+	Scale *= 2.5f;
+	Vertex temp = Vertex(Scale,Scale /8.0f,Scale);
+	Cube tSquare = Cube(&temp,0.0f,0.0f,0.0f,material);
+
+	visualData[0] = *tSquare.getVisualData(0);
+	temp = Vertex(Scale / 2.0f, Scale, Scale / 2.0f);
+	Cylinder tCyl = Cylinder(32,&temp,0.0f,0.0f,0.0f,material);
+	tCyl.rotateZ(-90.0f * DEGREES_TO_RAD);
+
+	visualData[1] = *tCyl.getVisualData(0);
+	visualData[1].adjustPosition(0.0f,Scale/4.0f,0.0f);
+
+}
+void ThrottleBody::setupCorrectMountingPoints(IntakeManifold* intakeManifold)
+{
+	for(int i = 0; i < 4; i++)
+	{
+		(*intakeManifold).setCorrectMount(i,1,getMountingPointPtr(i,0));
+		setCorrectMount(i,0,(*intakeManifold).getMountingPointPtr(i,1));
+	}   
 }
 /*
  SquarePyramid::SquarePyramid(Vertex* Scale, GLfloat dispx, GLfloat dispy, GLfloat dispz, Material* TriColor) : GameObject(dispx,dispy,dispz)
