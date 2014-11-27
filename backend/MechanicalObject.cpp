@@ -189,10 +189,10 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 	bool canConnectToTarget = canConnectTo(target,&tgtConnectionIndex,&connectionIndex);
 
 	connectedCorrect = false;
-
 	if(!canConnectToTarget)
+	{
 		return false;
-
+	}
 	//Check if all points close enough to their target
 	for(ALL_MOUNTING_POINTS_I)
 	{
@@ -214,7 +214,6 @@ bool MechanicalObject::connectTo(MechanicalObject* target, GLfloat threshold)
 		(*target).setCurrentMount(i,tgtConnectionIndex,(*currentConnection).getMountingPointPtr(i));
 	}
 
-	//connections.removeItem(connectionIndex);
 	connectedCorrect = true;
 	(*target).setConnectedCorrectly(true);
 
